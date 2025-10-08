@@ -1,5 +1,23 @@
 # WLAN Network Modeling Workshop 
 
+## Description:
+
+The WLAN Network Modeling Workshop provides participants with practical, hands-on experience in end-to-end WLAN network modeling using MATLAB.
+Through structured exercises, attendees will learn to efficiently develop code in MATLAB to model and simulate Wi-Fi 7 (802.11be) networks. 
+The workshop enables participants to visualize network behavior and assess performance metrics in realistic scenarios with minimal programming effort.
+
+
+## Target Audience:
+This workshop is intended for WLAN System Engineers and WLAN PHY/MAC Engineers who currently use, or wish to explore, WLAN and wireless network simulation capabilities within MATLAB.
+
+## Learning Outcomes:
+
+* Understand the working principles of wireless network simulators in MATLAB
+* Simulate multinode WLAN systems by configuring application layer (APP), medium access control (MAC), and physical layer (PHY) parameters at each node
+* Model both uplink (UL) and downlink (DL) communications between access points (APs) and stations (STAs)
+* Visualize the allocation of time among Idle, Contention, Transmission, and Reception states for each node
+* Record APP, MAC, and PHY statistics per node
+* Implement multilink operations, including enhanced multi-link single radio (eMLSR) and simultaneous transmit and receive (STR) modes
 
 This repo contains the files required to run the hands-on WLAN network modeling workshop in MATLAB&reg;. The "Exercise" files require code additions to  
 run.  The "Solution Scripts" files have the required code additions and run  
@@ -9,19 +27,16 @@ The files enable the following exercises:
 1.  Exercise 1 - Operate the simulation engine, configure WLAN nodes, create a simple network, and see statistics  
 2.  Exercise 2 - Configure traffic models, visualize QoS, and enable PCAP logging.  
 3.  Exercise 3 - Implement custom channel models 
-4.  Exercise 4 - Schedule action and interact with the simulation engine 
-5.  Exercise 5 - Simulate a network with MLO nodes(WiFi-7)
+4.  Exercise 4 - Simulate a network with MLO nodes(WiFi-7)
 
 ## Setup 
 To Run:
 1. To conduct the workshop, use the "Exercise" files
 2. To simply run the completed exercises, run the following files in MATLAB:
-- EX1_WLAN_SYS_basics_Soln.mlx
-- EX2_WLAN_SYS_PCAP_Basics_Soln.mlx
-- EX3_WLAN_SYS_CustomChannelModel_Soln.mlx
-- EX4_WLAN_SYS_Action_Scheduling_Soln.mlx
-- EX5_WLAN_SYS_MLO_Soln.mlx
-
+- EXPL1_WLAN_Simplest_Network.mlx
+- EXPL2_WLAN_QoS_Interference.mlx
+- EXPL3_WLAN_CustomChannelModel.mlx
+- EXPL4_WLAN_MLO.mlx
 
 ### MathWorks Products (https://www.mathworks.com)
 
