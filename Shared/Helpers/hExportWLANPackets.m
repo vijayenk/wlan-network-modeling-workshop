@@ -1,4 +1,3 @@
-%Copyright 2024-2025 The MathWorks, Inc
 classdef hExportWLANPackets < handle
 %hExportWLANPackets Export transmitted and received MAC frames to PCAP or
 %PCAPNG file
@@ -42,7 +41,7 @@ classdef hExportWLANPackets < handle
 %   PCAPObjList             - Array of objects of type wlanPCAPWriter
 %   WLANNodes               - Configured WLAN Nodes in the network
 
-%   Copyright 2022-2023 The MathWorks, Inc.
+%   Copyright 2022-2024 The MathWorks, Inc.
 
     properties(GetAccess = public, SetAccess = private)
         %PCAPObjList Array of objects of type wlanPCAPWriter
@@ -140,9 +139,9 @@ classdef hExportWLANPackets < handle
                     % object.
                     obj.PCAPObjList(nodeIDx) = wlanPCAPWriter('FileName', fileName(nodeIDx), 'FileExtension',fileExtension, 'RadiotapPresent', obj.EnableRadiotap);
                     addlistener(wlanNodes{nodeIDx}, 'MPDUDecoded', ...
-                        @(src, eventData)packetWriterCallback(obj,obj.PCAPObjList(nodeIDx), src, eventData));
+                        @(src, eventData)packetWriterCallback(obj,obj.PCAPObjList(nodeIDx), eventData));
                     addlistener(wlanNodes{nodeIDx}, 'MPDUGenerated', ...
-                        @(src, eventData)packetWriterCallback(obj,obj.PCAPObjList(nodeIDx), src, eventData));
+                        @(src, eventData)packetWriterCallback(obj,obj.PCAPObjList(nodeIDx), eventData));
                 end
             end
             resetRadiotapFields(obj);
@@ -150,7 +149,7 @@ classdef hExportWLANPackets < handle
     end
 
     methods(Access = private)
-        function packetWriterCallback(obj, pcapObj, nodeObj, eventData)
+        function packetWriterCallback(obj, pcapObj, eventData)
             %packetWriterCallback Callback function that writes the packets
             %into PCAP/PCAPNG format
             %
@@ -161,8 +160,6 @@ classdef hExportWLANPackets < handle
             %   received at each node.
             %
             %   PCAPOBJ is an object of type wlanPCAPWriter.
-            %
-            %   NODEOBJ is an object of type wlanNode.
             %
             %   EVENTDATA is a structure containing the following fields:
             %       Data      - Structure containing the following fields
@@ -200,6 +197,8 @@ classdef hExportWLANPackets < handle
                     macFrame = macFrame';
                 end
 
+                % Calculate the timestamp of the packet in microseconds
+                timestamp = round(eventData.Data.CurrentTime*1e6);
                 if obj.EnableRadiotap
                     radiotapBytes = formRadiotap(obj,eventData);
                     for frameIDx = 1:numel(macFrame)
@@ -208,14 +207,14 @@ classdef hExportWLANPackets < handle
                         % The radiotap flags byte (has FCS bit) must be
                         % filled accordingly
                         if strcmp(eventData.EventName, "MPDUDecoded")
-                            write(pcapObj, macFrame{frameIDx},round(nodeObj.CurrentTime, 0),'Radiotap',radiotapBytes(frameIDx,:));
+                            write(pcapObj, macFrame{frameIDx},timestamp,'Radiotap',radiotapBytes(frameIDx,:));
                         else % FCS information is not available for transmitted frames
-                            write(pcapObj, macFrame{frameIDx},round(nodeObj.CurrentTime, 0),'Radiotap',radiotapBytes);
+                            write(pcapObj, macFrame{frameIDx},timestamp,'Radiotap',radiotapBytes);
                         end
                     end
                 else
                     for frameIDx = 1:numel(macFrame)
-                        write(pcapObj, macFrame{frameIDx},round(nodeObj.CurrentTime, 0));
+                        write(pcapObj, macFrame{frameIDx},timestamp);
                     end
                 end
             end
@@ -247,172 +246,177 @@ classdef hExportWLANPackets < handle
             headerPad = 0;
             radiotapBytes = [headerRevision headerPad 0 0]; % header length is 0 initially
 
-            % Reset radiotap flags to default values for each captured
-            % frame
-            resetRadiotapFields(obj);
+            formRadiotapBytes = (strcmp(eventData.EventName, "MPDUDecoded") && ~eventData.Data.PHYDecodeFail) || ...
+                strcmp(eventData.EventName, "MPDUGenerated");
 
-            % Include frame timestamp if capture time is provided as an
-            % input
-            if ~isempty(varargin)
-                obj.RadiotapFields.FrameTimestamp = 1;
-                captureTime = varargin{1};
-            end
+            if formRadiotapBytes
+                % Reset radiotap flags to default values for each captured
+                % frame
+                resetRadiotapFields(obj);
 
-            if strcmp(eventData.EventName, "MPDUDecoded")
-                packetInfo = eventData.Data.RxVector;
-                switch packetInfo.PPDUFormat
-                    case 1 % NonHT, MCS information is not captured for NonHT
-                        obj.RadiotapFields.MCSInformation = 0;
-                    case 3 % VHT
-                        obj.RadiotapFields.VHTInformation = 1;
-                    case {4, 5} % HE-SU or HE-EXT-SU
-                        obj.RadiotapFields.HEInformation = 1;
-                    case 7 % HE-TB
-                        obj.RadiotapFields.LSIG = 1;
+                % Include frame timestamp if capture time is provided as an
+                % input
+                if ~isempty(varargin)
+                    obj.RadiotapFields.FrameTimestamp = 1;
+                    captureTime = varargin{1};
                 end
 
-                % Do not fill rate byte if it exceeds 255
-                dataRate = formRadiotapRateByte(obj,packetInfo);
-                dataRate = round(dataRate);
-                if dataRate > 255
+                if strcmp(eventData.EventName, "MPDUDecoded")
+                    packetInfo = eventData.Data.RxVector;
+                    switch packetInfo.PPDUFormat
+                        case 1 % NonHT, MCS information is not captured for NonHT
+                            obj.RadiotapFields.MCSInformation = 0;
+                        case 3 % VHT
+                            obj.RadiotapFields.VHTInformation = 1;
+                        case {4, 5} % HE-SU or HE-EXT-SU
+                            obj.RadiotapFields.HEInformation = 1;
+                        case 7 % HE-TB
+                            obj.RadiotapFields.LSIG = 1;
+                    end
+
+                    % Do not fill rate byte if it exceeds 255
+                    dataRate = formRadiotapRateByte(obj,packetInfo);
+                    dataRate = round(dataRate);
+                    if dataRate > 255
+                        obj.RadiotapFields.Rate = 0;
+                    end
+                else % MPDUGenerated
+                    % Rate and MCS fields are not formed for transmitted
+                    % frames, so disable the respective radiotap fields
                     obj.RadiotapFields.Rate = 0;
-                end
-            else % MPDUGenerated
-                % Rate and MCS fields are not formed for transmitted
-                % frames, so disable the respective radiotap fields
-                obj.RadiotapFields.Rate = 0;
-                obj.RadiotapFields.MCSInformation = 0;
-            end
-
-            % Get the logical values as an array
-            fieldVector = cellfun(@(x)(obj.RadiotapFields.(x)),fieldnames(obj.RadiotapFields));
-            % Add zeros to fill up the unsupported bits
-            fieldVector = [fieldVector(1:16);0;fieldVector(17:24); 0;fieldVector(25:30)].';
-            % Create the hexadecimal word for radiotap flags
-            radiotapFlagsWord = dec2hex(flip((bit2int(fieldVector',4,false))'))';
-            radiotapFlagsWord = reshape(radiotapFlagsWord, 2, []).';
-            % Create the byte representation to pass in the radiotap vector
-            radiotapFlagBytes = flip(hex2dec(radiotapFlagsWord).');
-
-            % Append to radiotap
-            radiotapBytes = [radiotapBytes radiotapFlagBytes];
-
-            if obj.RadiotapFields.Flags
-                % Form Flags byte, only 'FCS at end' is true by default,
-                % decimal 16;
-                radiotapBytes = [radiotapBytes 16];
-                if strcmp(eventData.EventName, "MPDUDecoded")
-                    flagsIndex = numel(radiotapBytes);
-                end
-            end
-
-            if obj.RadiotapFields.Rate
-                % Fill previously computed Rate byte
-                radiotapBytes = [radiotapBytes dataRate];
-            end
-
-            if obj.RadiotapFields.Channel
-                % Check for 2 bytes alignment
-                aligned= mod(numel(radiotapBytes), 2);
-                if aligned~=0
-                    numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,2);
-                    radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
-                end
-                channelBytes = formRadiotapChannelBytes(obj,eventData);
-                radiotapBytes = [radiotapBytes channelBytes];
-            end
-
-            if obj.RadiotapFields.dBmTxPower
-                % dBm Tx Power
-                if strcmp(eventData.EventName, "MPDUDecoded")
-                    txPower = round(packetInfo.PerUserInfo.TxPower,0);
-                else
-                    devCfg = getDeviceConfig(obj, eventData);
-                    txPower = round(devCfg.TransmitPower,0);
-                end
-                radiotapBytes = [radiotapBytes txPower];
-            end
-
-            if obj.RadiotapFields.MCSInformation
-                % Form MCS information bytes
-                mcsBytes = formRadiotapMCSBytes(obj,packetInfo);
-                radiotapBytes = [radiotapBytes mcsBytes];
-            end
-
-            if obj.RadiotapFields.VHTInformation
-                % Check for 2 bytes alignment
-                aligned= mod(numel(radiotapBytes), 2);
-                if aligned~=0
-                    numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,2);
-                    radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
+                    obj.RadiotapFields.MCSInformation = 0;
                 end
 
-                % Form VHT information bytes
-                VHTInformationBytes = formRadiotapVHTBytes(obj,packetInfo);
-                radiotapBytes = [radiotapBytes VHTInformationBytes];
-            end
+                % Get the logical values as an array
+                fieldVector = cellfun(@(x)(obj.RadiotapFields.(x)),fieldnames(obj.RadiotapFields));
+                % Add zeros to fill up the unsupported bits
+                fieldVector = [fieldVector(1:16);0;fieldVector(17:24); 0;fieldVector(25:30)].';
+                % Create the hexadecimal word for radiotap flags
+                radiotapFlagsWord = dec2hex(flip((bit2int(fieldVector',4,false))'))';
+                radiotapFlagsWord = reshape(radiotapFlagsWord, 2, []).';
+                % Create the byte representation to pass in the radiotap vector
+                radiotapFlagBytes = flip(hex2dec(radiotapFlagsWord).');
 
-            if obj.RadiotapFields.FrameTimestamp
-                % Check for 8 bytes alignment
-                aligned = mod(numel(radiotapBytes), 8);
-                if aligned~=0
-                    numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,8);
-                    radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
-                end
-
-                % Form timestamp bytes
-                timestampBytes = formRadiotapTimestampBytes(obj,captureTime);
                 % Append to radiotap
-                radiotapBytes = [radiotapBytes timestampBytes];
-            end
+                radiotapBytes = [radiotapBytes radiotapFlagBytes];
 
-            if obj.RadiotapFields.HEInformation
-                % Check for 2 bytes alignment
-                aligned = mod(numel(radiotapBytes), 2);
-                if aligned~=0
-                    numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,2);
-                    radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
-                end
-
-                % Form HE radiotap bytes
-                HEInformationBytes = formRadiotapHEBytes(obj,packetInfo);
-                radiotapBytes = [radiotapBytes HEInformationBytes];
-            end
-
-            if obj.RadiotapFields.LSIG
-                % Check for 2 bytes alignment
-                aligned = mod(numel(radiotapBytes), 2);
-                if aligned~=0
-                    numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,2);
-                    radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
-                end
-
-                % Form LSIG bytes
-                LSIGBytes = formRadiotapLSIGBytes(obj,packetInfo);
-                radiotapBytes = [radiotapBytes LSIGBytes];
-            end
-
-            % Final header length
-            if numel(radiotapBytes)>255
-                headerLength = [255 mod(numel(radiotapBytes), 255)];
-            else
-                headerLength = [numel(radiotapBytes) 0];
-            end
-
-            % Header Pad value
-            radiotapBytes(1,3:4) = headerLength;
-
-            % Fill FCS at end flag for each subframe
-            if strcmp(eventData.EventName, "MPDUDecoded")
-                numSubframes = numel(eventData.Data.FCSFail);
-                fcsBytes = eventData.Data.FCSFail;
-                outputRadiotap = repmat(radiotapBytes, numSubframes, 1);
-                for i = 1:numSubframes
-                    if fcsBytes(i)
-                        outputRadiotap(i,flagsIndex) = 80;
+                if obj.RadiotapFields.Flags
+                    % Form Flags byte, only 'FCS at end' is true by default,
+                    % decimal 16;
+                    radiotapBytes = [radiotapBytes 16];
+                    if strcmp(eventData.EventName, "MPDUDecoded")
+                        flagsIndex = numel(radiotapBytes);
                     end
                 end
-                radiotapBytes =  outputRadiotap;
+
+                if obj.RadiotapFields.Rate
+                    % Fill previously computed Rate byte
+                    radiotapBytes = [radiotapBytes dataRate];
+                end
+
+                if obj.RadiotapFields.Channel
+                    % Check for 2 bytes alignment
+                    aligned= mod(numel(radiotapBytes), 2);
+                    if aligned~=0
+                        numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,2);
+                        radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
+                    end
+                    channelBytes = formRadiotapChannelBytes(obj,eventData);
+                    radiotapBytes = [radiotapBytes channelBytes];
+                end
+
+                if obj.RadiotapFields.dBmTxPower
+                    % dBm Tx Power
+                    if strcmp(eventData.EventName, "MPDUDecoded")
+                        txPower = round(packetInfo.PerUserInfo.TxPower,0);
+                    else
+                        devCfg = getDeviceConfig(obj, eventData);
+                        txPower = round(devCfg.TransmitPower,0);
+                    end
+                    radiotapBytes = [radiotapBytes txPower];
+                end
+
+                if obj.RadiotapFields.MCSInformation
+                    % Form MCS information bytes
+                    mcsBytes = formRadiotapMCSBytes(obj,packetInfo);
+                    radiotapBytes = [radiotapBytes mcsBytes];
+                end
+
+                if obj.RadiotapFields.VHTInformation
+                    % Check for 2 bytes alignment
+                    aligned= mod(numel(radiotapBytes), 2);
+                    if aligned~=0
+                        numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,2);
+                        radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
+                    end
+
+                    % Form VHT information bytes
+                    VHTInformationBytes = formRadiotapVHTBytes(obj,packetInfo);
+                    radiotapBytes = [radiotapBytes VHTInformationBytes];
+                end
+
+                if obj.RadiotapFields.FrameTimestamp
+                    % Check for 8 bytes alignment
+                    aligned = mod(numel(radiotapBytes), 8);
+                    if aligned~=0
+                        numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,8);
+                        radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
+                    end
+
+                    % Form timestamp bytes
+                    timestampBytes = formRadiotapTimestampBytes(obj,captureTime);
+                    % Append to radiotap
+                    radiotapBytes = [radiotapBytes timestampBytes];
+                end
+
+                if obj.RadiotapFields.HEInformation
+                    % Check for 2 bytes alignment
+                    aligned = mod(numel(radiotapBytes), 2);
+                    if aligned~=0
+                        numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,2);
+                        radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
+                    end
+
+                    % Form HE radiotap bytes
+                    HEInformationBytes = formRadiotapHEBytes(obj,packetInfo);
+                    radiotapBytes = [radiotapBytes HEInformationBytes];
+                end
+
+                if obj.RadiotapFields.LSIG
+                    % Check for 2 bytes alignment
+                    aligned = mod(numel(radiotapBytes), 2);
+                    if aligned~=0
+                        numZeroPad = calculateNumberOfZeroPads(obj,radiotapBytes,2);
+                        radiotapBytes = [radiotapBytes zeros(1,numZeroPad)];
+                    end
+
+                    % Form LSIG bytes
+                    LSIGBytes = formRadiotapLSIGBytes(obj,packetInfo);
+                    radiotapBytes = [radiotapBytes LSIGBytes];
+                end
+
+                % Final header length
+                if numel(radiotapBytes)>255
+                    headerLength = [255 mod(numel(radiotapBytes), 255)];
+                else
+                    headerLength = [numel(radiotapBytes) 0];
+                end
+
+                % Header Pad value
+                radiotapBytes(1,3:4) = headerLength;
+
+                % Fill FCS at end flag for each subframe
+                if strcmp(eventData.EventName, "MPDUDecoded")
+                    numSubframes = numel(eventData.Data.FCSFail);
+                    fcsBytes = eventData.Data.FCSFail;
+                    outputRadiotap = repmat(radiotapBytes, numSubframes, 1);
+                    for i = 1:numSubframes
+                        if fcsBytes(i)
+                            outputRadiotap(i,flagsIndex) = 80;
+                        end
+                    end
+                    radiotapBytes =  outputRadiotap;
+                end
             end
         end
 
@@ -517,7 +521,7 @@ classdef hExportWLANPackets < handle
                     symbolTime = 4; % in microseconds
                     dataRate = (r.NDBPS(1)/symbolTime)*1e3/500;
 
-                case {4, 5}
+                case {4, 5} % HE-SU, HE-EXT-SU
                     heSUConfig = obj.HESUConfigObject;
                     heSUConfig.ChannelBandwidth = cbw;
                     heSUConfig.MCS = mcs;
@@ -525,6 +529,14 @@ classdef hExportWLANPackets < handle
                     heSUConfig.NumTransmitAntennas = numSTS;
                     heSUConfig.NumSpaceTimeStreams = numSTS;
                     r = wlan.internal.heRateDependentParameters(ruInfo(heSUConfig).RUSizes,mcs,numSTS,heSUConfig.DCM);
+                    symbolTime = 16; % in microseconds
+                    dataRate = (r.NDBPS/symbolTime)*1e3/500;
+
+                otherwise % EHT-SU
+                    ehtSUConfig = wlanEHTMUConfig(cbw);
+                    ehtSUConfig.User{1}.MCS = mcs;
+                    ehtSUConfig.NumTransmitAntennas = numSTS;
+                    [~,r] = wlan.internal.ehtCodingParameters(ehtSUConfig);
                     symbolTime = 16; % in microseconds
                     dataRate = (r.NDBPS/symbolTime)*1e3/500;
             end

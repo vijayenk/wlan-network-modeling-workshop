@@ -1,4 +1,3 @@
-%Copyright 2024-2025 The MathWorks, Inc
 classdef hSLSTGaxSystemChannelBase < handle
 %hSLSTGaxSystemChannelBase Create a hSLSTGaxSystemChannelBase object
 %
@@ -49,33 +48,36 @@ classdef hSLSTGaxSystemChannelBase < handle
 %   getShadowFading - Calculate the shadow fading between nodes
 %   getPathLoss     - Calculate the path loss between nodes
 
-%   Copyright 2022-2024 The MathWorks, Inc.
+%   Copyright 2022-2025 The MathWorks, Inc.
 
-    %#codegen
-
-    properties (Access=private)
-        PathGains;   % Path gains for generated channels
-        PathFilters; % Path filters for all channels
-        PathDelays;  % Path delays for all channels
-
-        Channels;    % Object for each channel
-        PathTimes;
-        LastPathTime;
-        SampleTimeOffset;
-        PathTimeOffset;
+   properties (Access=private)
+        Channels;      % Cell array of WLAN channel model objects
+        PathGains;     % Cell array of path gains for generated links
+        PathFilters;   % Cell array of path gains for generated links
+        PathFilterSampleRate; % Vector of sample rate for each set of path filters
+        PathDelays;    % Cell array of path delays for all links
+        PathTimes;     % Cell array of path times for generated links
+        LastPathTime;  % Vector of last path time generated for each link
+        SampleTimeOffset; % Vector of last sample time generated for each link
+        PathTimeOffset;   % Vector of path time offsets for each link
     end
 
     properties (Access=protected)
-        NumChannels;
+        NumLinks;
     end
 
     properties
-        %Links Array of structures containing channels for each link
+        %Links Structure array containing the channel for each link
+        %   Structure with fields:
+        %     Channel      - Channel model object
+        %     Node1        - Identifier of first node in link
+        %     Node2        - Identifier of second node in link
+        %     SampleRate   - Nominal sample rate of the link in Hz 
+        %     ShadowFading - Shadow fading loss for the link in dB
         Links;
         %CenterFrequency Channel operating frequency in Hz
         CenterFrequency;
-        %ShadowFadingStandardDeviation Shadow fading standard deviation in
-        %dB
+        %ShadowFadingStandardDeviation Shadow fading standard deviation in dB
         %    Set to 0 for no shadow fading
         ShadowFadingStandardDeviation = 0;
         %PathLossModel Path loss model
@@ -92,10 +94,10 @@ classdef hSLSTGaxSystemChannelBase < handle
         %    receiver.
         PathLossModelFcn;
         % ChannelIndicesLUT Lookup table of node indices for each channel
-        %    Matrix of NumChannels-by-2 storing the node indices of each
-        %    channel model. This is created when the object is created but
+        %    Matrix of NumLinks-by-2 storing the node indices for each
+        %    link. This is created when the object is constructed but
         %    may be overwritten.
-        ChannelIndicesLUT; % Array used to map channel index
+        ChannelIndicesLUT; % Array used to map link index
     end
 
     properties (Constant, Hidden=true)
@@ -136,7 +138,7 @@ classdef hSLSTGaxSystemChannelBase < handle
             %   itself.
             % * Assume the channel is reciprocal between a transmitter
             %   and receiver, but antenna configuration can be different.
-            % 
+            %
             % Create a mapping function to map requested channel between a
             % pair of nodes (tx,rx) to a channel. Each row contains the
             % transmitter index and receiver index of a channel. The
@@ -152,34 +154,36 @@ classdef hSLSTGaxSystemChannelBase < handle
             end
 
             % Allocate arrays to store channels generated
-            obj.NumChannels = height(obj.ChannelIndicesLUT);
-            obj.Links = repmat(struct('Channel',[],'Node1',[],'Node2',[],'SampleRate',chan.SampleRate,'ShadowFading',[]),1,obj.NumChannels);
-            obj.Channels = cell(1,obj.NumChannels);
-            obj.PathDelays = cell(obj.NumChannels,1);
-            obj.PathFilters = cell(obj.NumChannels,1);
-            obj.PathGains = cell(obj.NumChannels,1);
+            obj.NumLinks = height(obj.ChannelIndicesLUT);
+            obj.Links = repmat(struct('Channel',[],'Node1',[],'Node2',[],'SampleRate',chan.SampleRate,'ShadowFading',[]),1,obj.NumLinks);
+            obj.Channels = cell(1,obj.NumLinks);
+            obj.PathDelays = cell(obj.NumLinks,1);
+            obj.PathFilters = cell(obj.NumLinks,1);
+            obj.PathFilterSampleRate = zeros(obj.NumLinks,1);
+            obj.PathGains = cell(obj.NumLinks,1);
+            obj.PathTimes = cell(obj.NumLinks,1);
             obj.CenterFrequency = chan.CarrierFrequency;
 
             obj.UniqueNodeIndices = unique(obj.ChannelIndicesLUT,'stable');
 
             % Generate channels
             release(chan);
-            for ichan = 1:obj.NumChannels
-                node1ID = obj.ChannelIndicesLUT(ichan,1);
-                node2ID = obj.ChannelIndicesLUT(ichan,2);
+            for i = 1:obj.NumLinks
+                node1ID = obj.ChannelIndicesLUT(i,1);
+                node2ID = obj.ChannelIndicesLUT(i,2);
 
-                obj.Channels{ichan} = clone(chan);
-                obj.Channels{ichan}.ChannelFiltering = false; % Disable channel filtering as will be done externally
-                obj.Channels{ichan}.NumTransmitAntennas = numAntennas(obj.UniqueNodeIndices==node1ID);
-                obj.Channels{ichan}.NumReceiveAntennas = numAntennas(obj.UniqueNodeIndices==node2ID);
+                obj.Channels{i} = clone(chan);
+                obj.Channels{i}.ChannelFiltering = false; % Disable channel filtering as will be done externally
+                obj.Channels{i}.NumTransmitAntennas = numAntennas(obj.UniqueNodeIndices==node1ID);
+                obj.Channels{i}.NumReceiveAntennas = numAntennas(obj.UniqueNodeIndices==node2ID);
 
                 % Create public array of channels user can control
-                obj.Links(ichan).Node1 = node1ID;
-                obj.Links(ichan).Node2 = node2ID;
-                obj.Links(ichan).Channel = obj.Channels{ichan};
+                obj.Links(i).Node1 = node1ID;
+                obj.Links(i).Node2 = node2ID;
+                obj.Links(i).Channel = obj.Channels{i};
 
                 % Log-normal shadow fading in dB
-                obj.Links(ichan).ShadowFading = obj.ShadowFadingStandardDeviation*randn;
+                obj.Links(i).ShadowFading = obj.ShadowFadingStandardDeviation*randn;
             end
 
             % Reset channels and calculate Doppler dependent parameters
@@ -193,40 +197,41 @@ classdef hSLSTGaxSystemChannelBase < handle
             if nargin>1
                 txIdx = varargin{1};
                 rxIdx = varargin{2};
-                channelsToSet = obj.sub2chanInd(txIdx,rxIdx);
+                linksToSet = obj.sub2linkInd(txIdx,rxIdx);
             else
-                channelsToSet = 1:obj.NumChannels;
+                linksToSet = 1:obj.NumLinks;
             end
 
             % Set sample rate and number of samples for each channel at
             % lowest rate given Doppler frequency
-            for ichan = channelsToSet
+            for i = linksToSet
                 % Reset
-                obj.PathGains{ichan} = [];
-                obj.PathTimes{ichan} = [];
-                obj.PathDelays{ichan} = [];
-                obj.PathFilters{ichan} = [];
-                obj.SampleTimeOffset(ichan) = 0;
-                obj.LastPathTime(ichan) = -1;
-                obj.PathTimeOffset(ichan) = 0;
+                obj.PathGains{i} = [];
+                obj.PathTimes{i} = [];
+                obj.PathDelays{i} = [];
+                obj.PathFilters{i} = [];
+                obj.PathFilterSampleRate(i) = 0;
+                obj.SampleTimeOffset(i) = 0;
+                obj.LastPathTime(i) = -1;
+                obj.PathTimeOffset(i) = 0;
 
-                if isempty(obj.Channels) || isempty(obj.Channels{ichan})
+                if isempty(obj.Channels) || isempty(obj.Channels{i})
                     % No channel exists
                     continue
                 end
 
                 % Log-normal shadow fading in dB
                 if obj.ShadowFadingStandardDeviation>0
-                    obj.Links(ichan).ShadowFading = obj.ShadowFadingStandardDeviation*randn;
+                    obj.Links(i).ShadowFading = obj.ShadowFadingStandardDeviation*randn;
                 end
 
-                release(obj.Channels{ichan});
-                obj.Channels{ichan}.SampleRate = obj.Links(ichan).SampleRate; % Reset sample rate for regenerating path filters as potentially reduced by code.
-                obj.Channels{ichan}.ChannelFiltering = false; % Disable channel filtering as will be done externally
+                release(obj.Channels{i});
+                obj.Channels{i}.SampleRate = obj.Links(i).SampleRate; % Reset sample rate for regenerating path filters as potentially reduced by code.
+                obj.Channels{i}.ChannelFiltering = false; % Disable channel filtering as will be done externally
 
                 % Set channel sampling rate required for Doppler component
-                wavelength = 3e8/obj.Channels{ichan}.CarrierFrequency;
-                fdoppler = (obj.Channels{ichan}.EnvironmentalSpeed*(5/18))/wavelength; % Cut-off frequency (Hz), change km/h to m/s
+                wavelength = 3e8/obj.Channels{i}.CarrierFrequency;
+                fdoppler = (obj.Channels{i}.EnvironmentalSpeed*(5/18))/wavelength; % Cut-off frequency (Hz), change km/h to m/s
                 normalizationFactor = 1/300;
                 fc = fdoppler/normalizationFactor; % Channel sampling frequency
                 if fc>0
@@ -236,71 +241,49 @@ classdef hSLSTGaxSystemChannelBase < handle
 
                 % Set sample rate of channel to lowest possible to generate
                 % path gains based on Doppler frequency
-                obj.Channels{ichan}.SampleRate = max(fc/interpolationFactor,1e-3); % minimum very low sample rate (TODO handle 0 speed better)
+                obj.Channels{i}.SampleRate = max(fc/interpolationFactor,1e-3); % minimum very low sample rate (TODO handle 0 speed better)
 
                 % Calculate how many path gain samples to generate so that
                 % it will have at least as many required for one packet
                 % step time
-                numPathGainSamples = max(ceil(obj.PacketIterationSimTime*obj.Channels{ichan}.SampleRate),2); % At least 2 samples required
-                while (numPathGainSamples-1)/obj.Channels{ichan}.SampleRate < obj.PacketIterationSimTime
+                numPathGainSamples = max(ceil(obj.PacketIterationSimTime*obj.Channels{i}.SampleRate),2); % At least 2 samples required
+                while (numPathGainSamples-1)/obj.Channels{i}.SampleRate < obj.PacketIterationSimTime
                     % As the first sample is time 0, make sure we have
                     % enough samples to capture the simulation time
                     numPathGainSamples = numPathGainSamples+1;
                 end
-                obj.Channels{ichan}.NumSamples = numPathGainSamples;
+                obj.Channels{i}.NumSamples = numPathGainSamples;
             end
         end
 
-        function initialize(obj)
-            % Reset channels and parameters and calculate first path gains
+        function l = getLink(obj,varargin)
+            % L = getLink(OBJ,TXIDX,RXIDX) returns the link structure
+            % between node index TXIDX and RXIDX.
+            %
+            % L = getLink(OBJ,IDX) returns the link for link index
+            % LINKIDX.
 
-            reset(obj);
-
-            for ichan = 1:obj.NumChannels
-                if isempty(obj.Channels{ichan})
-                    % No channel exists
-                    continue
-                end
-                txIdx = obj.UniqueNodeIndices==obj.ChannelIndicesLUT(ichan,1);
-                rxIdx = obj.UniqueNodeIndices==obj.ChannelIndicesLUT(ichan,2);
-
-                % Evolving channel, get path gain for desired simulation
-                % time
-                numSamples = 1;
-                interpMethod = 0; % 0 = closest, 1 = linear
-                simTime = 0;
-                getPathGains(obj,txIdx,rxIdx,numSamples,simTime,interpMethod);
-            end
-        end
-
-        function l = getLink(obj,txIdx,rxIdx)
-            % L = getLink(OBJ,TXIDX,RXIDX) returns the link  between node
-            % index TXIDX and RXIDX.
-
-            % Extract channel information
-            idx = obj.sub2chanInd(txIdx,rxIdx);
-
-            l = obj.Links(idx);
+            l = obj.Links(linkIndex(obj,varargin{:}));
         end
 
         function chan = getChannel(obj,varargin)
-            % CHAN = getChannel(OBJ,TXIDX,RXIDX) returns the channel object
-            % between node index TXIDX and RXIDX.
+            % CHAN = getChannel(OBJ,TXIDX,RXIDX) returns the channel model
+            % object between node index TXIDX and RXIDX.
             %
-            % CHAN = getChannel(OBJ,CHANIDX) returns the channel object for
-            % the channel index CHANIDX.
+            % CHAN = getChannel(OBJ,LINKIDX) returns the channel object for
+            % the link index LINKIDX.
 
-            chan = obj.Channels{channelIndex(obj,varargin{:})};
+            chan = obj.Channels{linkIndex(obj,varargin{:})};
         end
 
         function pd = getPathDelays(obj,varargin)
             % PD = getPathDelays(OBJ,TXIDX,RXIDX) calculates channel path
             % delays between node index TXIDX and RXIDX.
             %
-            % PD = getPathDelays(OBJ,CHANIDX) calculates the path delays
-            % for the channel index CHANIDX.
+            % PD = getPathDelays(OBJ,LINKIDX) calculates the path delays
+            % for the link index LINKIDX.
 
-            idx = channelIndex(obj,varargin{:});
+            idx = linkIndex(obj,varargin{:});
 
             if isempty(obj.PathDelays{idx})
                 % Get path delays and filters if they do not already exist
@@ -310,33 +293,30 @@ classdef hSLSTGaxSystemChannelBase < handle
             pd = obj.PathDelays{idx};
         end
 
-        function [pf,pd] = getPathFilters(obj,varargin)
+        function [pf,pd] = getPathFilters(obj,txIdx,rxIdx,varargin)
             % PF = getPathFilters(OBJ,TXIDX,RXIDX) calculates channel path
-            % filters between node index TXIDX and RXIDX.
+            % filters between node index TXIDX and RXIDX for the sample
+            % rate set in the base channel model.
             %
-            % PF = getPathFilters(OBJ,CHANIDX) calculates the path filters
-            % for the channel index CHANIDX.
+            % PF = getPathFilters(...,SR) specifies the sample rate in Hz.
             %
             % [PF,PD] = getPathFilters(...) additionally returns the path
             % delays.
 
-            idx = channelIndex(obj,varargin{:});
-
-            if isempty(obj.PathFilters{idx})
-                % Get path delays and filters if they do not already exist
-                chanInfo = info(obj.Channels{idx});
-                obj.PathDelays{idx} = chanInfo.PathDelays;
-
-                % Channel filter in obj.Channel may be configured for
-                % lowest sample rate, so calculate path filters externally
-                channelFilter = comm.ChannelFilter( ...
-                    'SampleRate', obj.Links(idx).SampleRate, ...
-                    'PathDelays', getPathDelays(obj,idx), ...
-                    'NormalizeChannelOutputs', obj.Channels{idx}.NormalizeChannelOutputs);
-                obj.PathFilters{idx} = info(channelFilter).ChannelFilterCoefficients;
+            idx = linkIndex(obj,txIdx,rxIdx);
+            if nargin>3
+                sr = varargin{1};
+            else
+                sr = obj.Links(idx).SampleRate;
+            end
+            pd = getPathDelays(obj,idx);
+            if isempty(obj.PathFilters{idx}) || obj.PathFilterSampleRate(idx)~=sr
+                % Get path filters if they do not already exist or the
+                % sample rate has changed
+                obj.PathFilters{idx} = wireless.internal.L2SM.channelFilterCoefficients(pd,sr);
+                obj.PathFilterSampleRate(idx) = sr;
             end
             pf = obj.PathFilters{idx};
-            pd = obj.PathDelays{idx};
         end
 
         function [pg,st] = getPathGains(obj,txIdx,rxIdx,numSamples,varargin)
@@ -363,7 +343,7 @@ classdef hSLSTGaxSystemChannelBase < handle
             interpMethod = 2; % linear
 
             % Extract channel information
-            [idx,switched] = obj.sub2chanInd(txIdx,rxIdx);
+            [idx,switched] = obj.sub2linkInd(txIdx,rxIdx);
 
             fs = obj.Links(idx).SampleRate;
             samplesSimTime = numSamples/fs;
@@ -461,17 +441,28 @@ classdef hSLSTGaxSystemChannelBase < handle
             end
         end
 
+        function pg = frequencyShiftPathGains(obj,pg,txCenterFrequency,txIdx,rxIdx)
+            % Frequency shift path gains so they are centered at the
+            % transmission center frequency if the channel center frequency
+            % is different than the transmission center frequency
+            frequencyOffset = txCenterFrequency-obj.CenterFrequency;
+            if abs(frequencyOffset)>0
+                pd = getPathDelays(obj,txIdx,rxIdx);
+                pg = pg.*exp(1i*2*pi*frequencyOffset.*pd);
+            end
+        end
+
         function l = getShadowFading(obj,txIdx,rxIdx)
             % L = getShadowFading(OBJ,TXIDX,RXIDX) returns shadow fading in
             % dB between node index TXIDX and RXIDX.
 
             % Extract channel information
-            idx = obj.sub2chanInd(txIdx,rxIdx);
+            idx = obj.sub2linkInd(txIdx,rxIdx);
 
             l = obj.Links(idx).ShadowFading;
         end
 
-        function pl = getPathLoss(obj, sig, rxInfo)
+        function pl = getPathLoss(obj,sig,rxInfo)
             %pathLoss Calculates path loss based on the signal and receiver
             %information
 
@@ -491,8 +482,8 @@ classdef hSLSTGaxSystemChannelBase < handle
     end
 
     methods (Access=protected)
-        function [idx,switched] = sub2chanInd(obj,txIdx,rxIdx)
-            % Returns the channel index given the transmit and receive node
+        function [idx,switched] = sub2linkInd(obj,txIdx,rxIdx)
+            % Returns the link index given the transmit and receive node
             % indices
             idx = all(obj.ChannelIndicesLUT == [txIdx rxIdx],2);
             switched = false;
@@ -501,10 +492,39 @@ classdef hSLSTGaxSystemChannelBase < handle
                 idx = all(obj.ChannelIndicesLUT == [rxIdx txIdx],2);
                 switched = true;
             end
-            % Check that the channel has been created, if not it will be
-            % NaNs. A channel does not exist between a node and itself.
+            % Check that the channel has been created and not more than one
+            % channel exists between the pair. A channel does not exist
+            % between a node and itself.
+            assert(nnz(idx)<=1,'More than one channel exists between node #%d and #%d at this frequency.',txIdx,rxIdx)
             if ~any(idx) || isempty(obj.Links(idx).Channel)
-                error('hSLSTGaxSystemChannelBase:NoChannelExists','Channel does not exist between node #%d and #%d.',txIdx,rxIdx)
+                error('hSLSTGaxSystemChannelBase:NoChannelExists','Channel does not exist between Node ID %d and  Node ID %d.',txIdx,rxIdx)
+            end
+        end
+
+        function idx = linkIndex(obj,varargin)
+            %linkIndex returns the link index given either the
+            %link index or transmitter and receiver node index.
+            if nargin==2
+                idx = varargin{1};
+            else
+                % Extract channel information
+                txIdx = varargin{1};
+                rxIdx = varargin{2};
+                idx = obj.sub2linkInd(txIdx,rxIdx);
+            end
+        end
+
+        function pathGains = extractRequiredPathGains(~,pathGains,numTxAnts,numRxAnts)
+            % PATHGAINS = extractRequiredPathGains(OBJ,PATHGAINS,NUMTXANTS,NUMRXANTS)
+            % extracts the path gains required given the number of transmit
+            % and receive antennas used in a link from the maximum number
+            % of path gains.
+
+            [~,~,maxNumTxAnts,maxNumRxAnts] = size(pathGains);
+            if maxNumTxAnts~=numTxAnts || maxNumRxAnts~=numRxAnts
+                txAntIdx = 1:numTxAnts;
+                rxAntIdx = 1:numRxAnts;
+                pathGains = pathGains(:,:,txAntIdx,rxAntIdx);
             end
         end
     end
@@ -542,19 +562,5 @@ classdef hSLSTGaxSystemChannelBase < handle
             % Calculate free space path loss (in dB)
             pl = fspl(d, obj.LightSpeed/obj.CenterFrequency);
         end
-
-        function idx = channelIndex(obj,varargin)
-            %channelIndex returns the channel index given either the
-            %channel index or transmitter and receiver node index.
-            if nargin==2
-                idx = varargin{1};
-            else
-                % Extract channel information
-                txIdx = varargin{1};
-                rxIdx = varargin{2};
-                idx = obj.sub2chanInd(txIdx,rxIdx);
-            end
-        end
     end
-
 end

@@ -1,4 +1,3 @@
-%Copyright 2024-2025 The MathWorks, Inc
 classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
 %hSLSTGaxSystemChannel Create a channel manager object for full PHY
 %
@@ -21,16 +20,28 @@ classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
 %
 %   hSLSTGaxSystemChannel methods:
 %
-%   applyChannelToWaveform        - filters a waveform through a
+%   applyChannelToWaveform        - Filters a waveform through a
 %                                   channel between two nodes
-%   applyChannelToSignalStructure - filters a waveform in a signal
+%   applyChannelToSignalStructure - Filters a waveform in a signal
 %                                   structure through a channel between
 %                                   two nodes
 
-%   Copyright 2022-2024 The MathWorks, Inc.
+%   Copyright 2022-2025 The MathWorks, Inc.
+
+    properties (Constant)
+        ChannelFiltersStruct = struct('LinkIndex',zeros(0,1),'NumTxAnts',zeros(0,1),'SampleRate',zeros(0,1),'ChannelFilter',zeros(0,1),'Length',zeros(0,1),'Delay',zeros(0,1));
+    end
 
     properties (Access=private)
-        ChannelFilter;
+        % Structure array containing channel filters with the fields:
+        %   LinkIndex - Index of the link between a pair of nodes. Assumes
+        %               each pair of nodes has a unique set of path delays.
+        %   NumTxAnts - Number of transmit antennas
+        %   SampleRate    - Sample rate in Hz of the waveform to filter
+        %   ChannelFilter - comm.ChannelFilter object
+        %   Length        - Filter length
+        %   Delay         - Filter delay in samples
+        ChannelFilters;
     end
 
     methods
@@ -41,12 +52,12 @@ classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
             % NUMANTENNAS. This assumes all nodes can transmit and receive
             % and channels between the nodes are reciprocal.
             obj = obj@hSLSTGaxSystemChannelBase(varargin{:})
-
-            obj.initialize();
         end
 
-        function initialize(obj)
-            obj.ChannelFilter = cell(obj.NumChannels,2);
+        function reset(obj)
+            % Clear channel filters
+            obj.ChannelFilters = repmat(obj.ChannelFiltersStruct,1,0);
+            reset@hSLSTGaxSystemChannelBase(obj);
         end
 
         function [sig,pg,chanInfo] = applyChannelToSignalStructure(obj,sig,rxInfo)
@@ -55,23 +66,33 @@ classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
             % between two nodes. The receiver is specified by the structure
             % RXINFO.
 
-            chanFilt = getChannelFilter(obj,sig.TransmitterID,rxInfo.ID,sig.SampleRate);
-            chanInfo = info(chanFilt);
+            [numSamples,numTxAnts] = size(sig.Data);
+            [chanFilt,filterLen,filterDelay] = getChannelFilter(obj,sig.TransmitterID,rxInfo.ID,sig.SampleRate,numTxAnts);
+            if nargout>2
+                chanInfo = info(chanFilt);
+            end
 
-            % Add trailing zeros to allow for channel delay
-            filterLen = size(chanInfo.ChannelFilterCoefficients,2);
+            % Trailing zeros will be added to data to allow for channel delay
             numPadSamples = filterLen-1;
-            dataPad = [sig.Data; zeros(numPadSamples,size(sig.Data,2))];
 
             % Get path gains for all samples of input data
-            numSamplesToSim = height(dataPad);
+            numSamplesToSim = numSamples+numPadSamples;
             simTime = sig.StartTime; % seconds
             pg = getPathGains(obj,sig.TransmitterID,rxInfo.ID,numSamplesToSim,simTime);
+
+            % Extract only the tx/rx antennas needed if that information is
+            % provided. To support EMLSR, the pathgains are generated for
+            % the maximum possible number of antennas. Extract the
+            % appropriate path gains for channel filtering.
+            pg = extractRequiredPathGains(obj,pg,sig.NumTransmitAntennas,rxInfo.NumReceiveAntennas);
 
             % Frequency shift path gains so they are centered at the
             % transmission center frequency if the channel center frequency
             % is different than the transmission center frequency
             pg = frequencyShiftPathGains(obj,pg,sig.CenterFrequency,sig.TransmitterID,rxInfo.ID);
+
+            % Add trailing zeros and pad for antenna selection as required
+            dataPad = [sig.Data; zeros(numPadSamples,numTxAnts)];
 
             % Reset filter as we assume one packet filtered at a time and
             % we are jumping ahead in time and we don't want any internal
@@ -82,11 +103,11 @@ classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
             filteredData = chanFilt(dataPad,pg);
 
             % Remove implementation delay
-            sig.Data = filteredData(chanInfo.ChannelFilterDelay+1:end,:);
-            pg = pg(chanInfo.ChannelFilterDelay+1:end,:,:,:);
+            sig.Data = filteredData(filterDelay+1:end,:);
+            pg = pg(filterDelay+1:end,:,:,:);
 
             % Add trailing transient to packet duration in seconds
-            numTransientSamples = filterLen-1-chanInfo.ChannelFilterDelay;
+            numTransientSamples = filterLen-1-filterDelay;
             sig.Duration = sig.Duration+(numTransientSamples/chanFilt.SampleRate);
         end
 
@@ -99,7 +120,8 @@ classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
             % channel filter is reset as time is assumed to progress beyond
             % the filter group delay.
 
-            chanFilt = getChannelFilter(obj,txIdx,rxIdx,fs);
+            numTx = size(x,2);
+            chanFilt = getChannelFilter(obj,txIdx,rxIdx,fs,numTx);
 
             if nargin>4
                 % If time offset provided reset filter as we assume one
@@ -116,36 +138,60 @@ classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
     end
 
     methods (Access=private)
-        function chanFilt = getChannelFilter(obj,txIdx,rxIdx,fs)
-            % CHANFILT = getChannelFilter(OBJ,TXIDX,RXIDX,FS) returns the
-            % channel filter between node index TXIDX and RXIDX for sample
-            % rate FS Hz.
+        function [chanFilt,filterLen,filterDelay] = getChannelFilter(obj,varargin)
+            % CHANFILT = getChannelFilter(OBJ,TXIDX,RXIDX,FS,NUMTXANTS)
+            % returns the channel filter between node index TXIDX and RXIDX
+            % for sample rate FS Hz and number of transmit antennas
+            % NUMTXANTS.
+            %
+            % CHANFILT = getChannelFilter(OBJ,IDX,FS)  returns the chnanel
+            % filter for link index IDX with sampel rate FS Hz.
 
-            [idx,switched] = sub2chanInd(obj,txIdx,rxIdx);
-
-            if switched
-                j = 2; % Downlink channel filter
+            if nargin==3
+                % CHANFILT = getChannelFilter(OBJ,IDX,FS)
+                idx = varargin{1};
+                fs = varargin{2};
+                numTxAnts = 0;
             else
-                j = 1; % Uplink channel filter
+                % CHANFILT = getChannelFilter(OBJ,TXIDX,RXIDX,FS,NUMTXANTS)
+                idx = linkIndex(obj,varargin{1:2});
+                fs = varargin{3};
+                numTxAnts = varargin{4};
             end
-            if isempty(obj.ChannelFilter{idx,j}) || obj.ChannelFilter{idx,j}.SampleRate~=fs
-                % Create a separate channel filter for uplink and downlink
-                % if filter not created already, or the sample rate has
-                % changed
-                obj.ChannelFilter{idx,j} = comm.ChannelFilter('PathDelays',getPathDelays(obj,idx),'SampleRate',fs,'NormalizeChannelOutputs',obj.Links(idx).Channel.NormalizeChannelOutputs);
+
+            % Create a unique channel filter between  each pair of nodes
+            % for the specified number of transmit antennas and sample
+            % rate. The number of transmit antennas and sample rate cannot
+            % change in comm.ChannelFilter once created, hence why we
+            % create a new one. Before creating a new channel filter check
+            % if one is already created
+            if isempty(obj.ChannelFilters)
+                % No channel filters, create new one
+                [chanFilt,filterLen,filterDelay] = createChannelFilter(obj,idx,fs,numTxAnts);
+            else
+                existingFilterIdx = all([obj.ChannelFilters.LinkIndex]==idx,1) & [obj.ChannelFilters.SampleRate]==fs & [obj.ChannelFilters.NumTxAnts]==numTxAnts;
+                if any(existingFilterIdx)
+                    % Filter exists, use it
+                    chanFilt = obj.ChannelFilters(existingFilterIdx).ChannelFilter;
+                    filterLen = obj.ChannelFilters(existingFilterIdx).Length;
+                    filterDelay = obj.ChannelFilters(existingFilterIdx).Delay;
+                else
+                    % Filter does not exist, create new one
+                    [chanFilt,filterLen,filterDelay] = createChannelFilter(obj,idx,fs,numTxAnts);
+                end
             end
-            chanFilt = obj.ChannelFilter{idx,j};
         end
 
-        function pg = frequencyShiftPathGains(obj,pg,txCenterFrequency,txIdx,rxIdx)
-            % Frequency shift path gains so they are centered at the
-            % transmission center frequency if the channel center frequency
-            % is different than the transmission center frequency
-            frequencyOffset = txCenterFrequency-obj.CenterFrequency;
-            if abs(frequencyOffset)>0
-                pd = getPathDelays(obj,txIdx,rxIdx);
-                pg = pg.*exp(1i*2*pi*frequencyOffset.*pd);
-            end
+        function [chanFilt,filtLen,filtDelay] = createChannelFilter(obj,idx,fs,numTxAnts)
+            % Create new channel filter and store in structure array. Force
+            % NormalizeChannelOutputs to false as the signal strength
+            % calculations in the simulator is not normalized.
+            chanFilt = comm.ChannelFilter('PathDelays',getPathDelays(obj,idx),'SampleRate',fs,'NormalizeChannelOutputs',false);
+            cinfo = info(chanFilt);
+            filtLen = size(cinfo.ChannelFilterCoefficients,2);
+            filtDelay = cinfo.ChannelFilterDelay;
+            newChannelFilter = struct('LinkIndex',idx,'NumTxAnts',numTxAnts,'SampleRate',fs,'ChannelFilter',chanFilt,'Length',filtLen,'Delay',filtDelay);
+            obj.ChannelFilters = cat(2,obj.ChannelFilters,newChannelFilter);
         end
     end
 end

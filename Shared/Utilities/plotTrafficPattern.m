@@ -11,11 +11,11 @@ packetCount = 0;
 while currentTime < simulationDuration
     % Generate packet and calculate next packet generation time
     [dt,packetSize] = generate(cfgPeriodic);
-    currentTime = currentTime + dt/1000; % Convert ms to seconds for the next iteration
     packetCount = packetCount + 1;
     packetTimes(packetCount) = currentTime;
     packetSizes(packetCount) = packetSize;
     fprintf("Time: %f s - Generated a periodic packet of size %d bytes\n", currentTime, packetSize);
+    currentTime = currentTime + dt/1000; % Convert ms to seconds for the next iteration
 end
 
 figure % Creates a new figure window

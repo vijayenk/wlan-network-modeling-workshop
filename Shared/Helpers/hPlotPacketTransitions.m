@@ -1,4 +1,3 @@
-%Copyright 2024-2025 The MathWorks, Inc
 classdef hPlotPacketTransitions < handle
     %hPlotPacketTransitions Plots the live packet communication across
     %time and frequency for Bluetooth, WLAN, and coexistence nodes
@@ -240,6 +239,9 @@ classdef hPlotPacketTransitions < handle
         %packets
         pCommunicationInfoBREDR = {4,"--mw-graphics-colorOrder-11-quaternary"}
 
+        %pCommunicationInfoLE6GHz Packet type and packet color of Bluetooth LE 6 GHz packets
+        pCommunicationInfoLE6GHz = {5,"--mw-graphics-colorOrder-2-quaternary"}
+
         %pLECenterFrequencies Bluetooth LE channel center frequencies in Hz
         pLECenterFrequencies = [2404:2:2424 2428:2:2478 2402 2426 2480]*1e6
     end
@@ -257,9 +259,10 @@ classdef hPlotPacketTransitions < handle
         %objects of type helperCoexNode object.
         CoexNodes
 
-        %InterferingWLANNodes List of interfering WLAN nodes to visualize. The
-        %value is an array of objects of type helperInterferingWLANNode object.
-        InterferingWLANNodes
+        %InterferingNodes List of interfering WLAN or LE nodes to
+        %visualize. The value is an array of objects of type
+        %helperInterferingWLANNode or helperInterferingBluetoothNode object.
+        InterferingNodes
     end
 
     properties (Access=private)
@@ -275,8 +278,11 @@ classdef hPlotPacketTransitions < handle
         %pNumWLANNodes Number of WLAN nodes configured
         pNumWLANNodes = 0
 
-        %pNumInterferingWLANNodes Number of interfering WLAN nodes configured
-        pNumInterferingWLANNodes = 0
+        %pNumInterferingNodes Number of interfering nodes configured
+        pNumInterferingNodes = 0
+
+        %pNumLE6GHzNodes Number of Bluetooth LE 6 GHz nodes configured
+        pNumLE6GHzNodes
     end
 
     %% Constructor
@@ -300,29 +306,32 @@ classdef hPlotPacketTransitions < handle
             % Validate the nodes
             if iscell(nodes)
                 for idx = 1:numel(nodes)
-                    validateattributes(nodes{idx},["bluetoothLENode","bluetoothNode","wlanNode","helperCoexNode","helperInterferingWLANNode"], ...
+                    validateattributes(nodes{idx},["bluetoothLENode","bluetoothNode","wlanNode","helperCoexNode","helperInterferingWLANNode","helperInterferingBluetoothNode"], ...
                         {'scalar'},mfilename,"nodes");
                 end
             else
-                validateattributes(nodes(1),["bluetoothLENode","bluetoothNode","wlanNode","helperCoexNode","helperInterferingWLANNode"], ...
+                validateattributes(nodes(1),["bluetoothLENode","bluetoothNode","wlanNode","helperCoexNode","helperInterferingWLANNode","helperInterferingBluetoothNode"], ...
                     {'scalar'},mfilename,"nodes");
                 nodes = num2cell(nodes);
             end
 
+            % Use weak-references for cross-linking handle objects
+            objWeakRef = matlab.lang.WeakReference(obj);
+
             % Segregate the nodes based on their type and attach necessary listeners
             % for plotting the visualization
-            countCoex = 1; countBluetooth = 1; countWLAN = 1; countIntWLAN = 1;
-            numBREDRNodes = 0; numLENodes = 0; numWLANNodes = 0; numIntWLANNodes = 0;
+            [countCoex,countBluetooth,countWLAN,countInt] = deal(1);
+            [numBREDRNodes,numLENodes,numWLANNodes,numIntWLANNodes,numHelperLENodes] = deal(0);
             for idx = 1:numel(nodes)
                 if isa(nodes{idx},"helperCoexNode")
                     obj.CoexNodes{countCoex} = nodes{idx};
                     % Add listener to Bluetooth device
-                    addlistener(nodes{idx},"PacketTransmissionStarted",@(srcNode,eventData) bluetoothPlotCallback(obj,srcNode,eventData));
-                    addlistener(nodes{idx},"PacketReceptionEnded",@(srcNode,eventData) bluetoothPlotCallback(obj,srcNode,eventData));
+                    addlistener(nodes{idx},"PacketTransmissionStarted",@(srcNode,eventData) objWeakRef.Handle.bluetoothPlotCallback(srcNode,eventData));
+                    addlistener(nodes{idx},"PacketReceptionEnded",@(srcNode,eventData) objWeakRef.Handle.bluetoothPlotCallback(srcNode,eventData));
 
                     % Add listener to WLAN device
-                    addlistener(nodes{idx},"StateChanged",@(srcNode,eventData) wlanPlotCallback(obj,srcNode,eventData,obj.CoexNodes));
-                    addlistener(nodes{idx},"MPDUDecoded",@(srcNode,eventData) wlanPlotCallback(obj,srcNode,eventData,obj.CoexNodes));
+                    addlistener(nodes{idx},"StateChanged",@(srcNode,eventData) objWeakRef.Handle.wlanPlotCallback(srcNode,eventData,obj.CoexNodes));
+                    addlistener(nodes{idx},"MPDUDecoded",@(srcNode,eventData) objWeakRef.Handle.wlanPlotCallback(srcNode,eventData,obj.CoexNodes));
 
                     % Increment device count based on the added devices in coexistence node
                     if ~isempty(nodes{idx}.BluetoothDevice.DeviceName)
@@ -338,11 +347,16 @@ classdef hPlotPacketTransitions < handle
                 elseif isa(nodes{idx},"bluetoothNode") || isa(nodes{idx},"bluetoothLENode")
                     obj.BluetoothNodes{countBluetooth} = nodes{idx};
                     % Add listener to Bluetooth device
-                    addlistener(obj.BluetoothNodes{countBluetooth},"PacketTransmissionStarted",@(srcNode,eventData) bluetoothPlotCallback(obj,srcNode,eventData));
-                    addlistener(obj.BluetoothNodes{countBluetooth},"PacketReceptionEnded",@(srcNode,eventData) bluetoothPlotCallback(obj,srcNode,eventData));
+                    addlistener(obj.BluetoothNodes{countBluetooth},"PacketTransmissionStarted",@(srcNode,eventData) objWeakRef.Handle.bluetoothPlotCallback(srcNode,eventData));
+                    addlistener(obj.BluetoothNodes{countBluetooth},"PacketReceptionEnded",@(srcNode,eventData) objWeakRef.Handle.bluetoothPlotCallback(srcNode,eventData));
+                    if isa(nodes{idx},"helperBluetoothLE6GHzNode")
+                        addlistener(obj.BluetoothNodes{countBluetooth},"ChannelAccessEnded",@(srcNode,eventData) objWeakRef.Handle.bluetoothPlotCallback(srcNode,eventData));
+                    end
 
                     % Increment Bluetooth node count
-                    if isa(nodes{idx},"bluetoothNode")
+                    if isa(nodes{idx},"helperBluetoothLE6GHzNode")
+                        numHelperLENodes = numHelperLENodes+1;
+                    elseif isa(nodes{idx},"bluetoothNode")
                         numBREDRNodes = numBREDRNodes+1;
                     elseif isa(nodes{idx},"bluetoothLENode")
                         numLENodes = numLENodes+1;
@@ -351,28 +365,29 @@ classdef hPlotPacketTransitions < handle
                 elseif isa(nodes{idx},"wlanNode")
                     obj.WLANNodes{countWLAN} = nodes{idx};
                     % Add listener to WLAN device
-                    addlistener(obj.WLANNodes{countWLAN},"StateChanged",@(srcNode,eventData) wlanPlotCallback(obj,srcNode,eventData,obj.WLANNodes));
-                    addlistener(obj.WLANNodes{countWLAN},"MPDUDecoded",@(srcNode,eventData) wlanPlotCallback(obj,srcNode,eventData,obj.WLANNodes));
+                    addlistener(obj.WLANNodes{countWLAN},"StateChanged",@(srcNode,eventData) objWeakRef.Handle.wlanPlotCallback(srcNode,eventData,obj.WLANNodes));
+                    addlistener(obj.WLANNodes{countWLAN},"MPDUDecoded",@(srcNode,eventData) objWeakRef.Handle.wlanPlotCallback(srcNode,eventData,obj.WLANNodes));
 
                     % Increment WLAN node count
                     numWLANNodes = numWLANNodes+1;
                     countWLAN = countWLAN+1;
-                elseif isa(nodes{idx},"helperInterferingWLANNode")
-                    obj.InterferingWLANNodes{countIntWLAN} = nodes{idx};
-                    addlistener(obj.InterferingWLANNodes{countIntWLAN},"PacketTransmissionStarted",@(srcNode,eventData) interferingWLANPlotCallback(obj,srcNode,eventData));
+                elseif isa(nodes{idx},"helperInterferingWLANNode") || isa(nodes{idx},"helperInterferingBluetoothNode")
+                    obj.InterferingNodes{countInt} = nodes{idx};
+                    addlistener(obj.InterferingNodes{countInt},"PacketTransmissionStarted",@(srcNode,eventData) objWeakRef.Handle.interferingPlotCallback(srcNode,eventData));
                     numIntWLANNodes = numIntWLANNodes+1;
-                    countIntWLAN = countIntWLAN+1;
+                    countInt = countInt+1;
                 end
             end
             obj.pNumBREDRNodes = numBREDRNodes;
             obj.pNumLENodes = numLENodes;
             obj.pNumWLANNodes = numWLANNodes;
-            obj.pNumInterferingWLANNodes = numIntWLANNodes;
+            obj.pNumInterferingNodes = numIntWLANNodes;
+            obj.pNumLE6GHzNodes = numHelperLENodes;
 
             % Schedule actions in the network simulator
             networkSimulator = wirelessNetworkSimulator.getInstance;
             if ~obj.VisualizeAtEnd
-                scheduleAction(networkSimulator,@(varargin) drawCommunicationInfo(obj,[],[],[],[]),[],0,0.005);
+                scheduleAction(networkSimulator,@(varargin) objWeakRef.Handle.drawCommunicationInfo([],[],[],[]),[],0,0.005);
             end
         end
     end
@@ -384,11 +399,14 @@ classdef hPlotPacketTransitions < handle
 
             import matlab.graphics.internal.themes.specifyThemePropertyMappings
 
+            % Use weak-references for cross-linking handle objects
+            objWeakRef = matlab.lang.WeakReference(obj);
+
             % Schedule action in the network simulator at the simulation end time to
             % update the visualization
             networkSimulator = wirelessNetworkSimulator.getInstance;
             simulationTime = obj.pSimulationTime;
-            scheduleAction(networkSimulator,@(varargin) updateFigureAtSimulationEnd(obj),[],simulationTime);
+            scheduleAction(networkSimulator,@(varargin) objWeakRef.Handle.updateFigureAtSimulationEnd(),[],simulationTime);
 
             % Get screen resolution and calculate the figure dimension
             set(0,"units","pixels");
@@ -409,7 +427,7 @@ classdef hPlotPacketTransitions < handle
                 obj.PacketCommUIFigure.Visible = "off";
             end
             obj.PacketCommUIFigure.Position = [60 60 figureWidth figureHeight];
-            obj.PacketCommUIFigure.WindowButtonDownFcn =  @(~,eventData) updateLine(obj,eventData,zeros(1,0));
+            obj.PacketCommUIFigure.WindowButtonDownFcn =  @(~,eventData) objWeakRef.Handle.updateLine(eventData,zeros(1,0));
             figureGrid = uigridlayout(obj.PacketCommUIFigure,[11 4], ... % 11 rows and 4 columns
                 "ColumnWidth",{'fit','fit','fit','fit','5x','5x','fit','fit','fit'}, ...
                 "RowHeight",{'fit','0.2x','1.8x','1x','1x','fit','1x','0.2x','1.8x','1x','1x'}, ...
@@ -434,6 +452,7 @@ classdef hPlotPacketTransitions < handle
             obj.pCommunicationInfoWLAN{2} = getThemeColor(currTheme, obj.pCommunicationInfoWLAN{2});
             obj.pCommunicationInfoLE{2} = getThemeColor(currTheme, obj.pCommunicationInfoLE{2});
             obj.pCommunicationInfoBREDR{2} = getThemeColor(currTheme, obj.pCommunicationInfoBREDR{2});
+            obj.pCommunicationInfoLE6GHz{2} = getThemeColor(currTheme, obj.pCommunicationInfoLE6GHz{2});
 
             % Add title
             title = createLabel(obj,figureGrid,figUIName,"Packet Communication Figure Title",18,"Bold",1,[2 8]);
@@ -466,7 +485,7 @@ classdef hPlotPacketTransitions < handle
             obj.StateAxes.Position(4) = panelState.InnerPosition(4)-panelState.BorderWidth-10;
             obj.StateAxes.Position(3) =  panelState.InnerPosition(3)-10;
             xlim(obj.StateAxes,[0 simulationTime]);
-            panelState.SizeChangedFcn = @(~,~) resizeAxes(obj,panelState,obj.StateAxes,true);
+            panelState.SizeChangedFcn = @(~,~) objWeakRef.Handle.resizeAxes(panelState,obj.StateAxes,true);
             hold(obj.StateAxes,"on")
 
             % Axes for time vs frequency: Channel occupancy plot
@@ -482,7 +501,7 @@ classdef hPlotPacketTransitions < handle
                 obj.FreqAxes.Title.String = "Packet Communication over Frequency";
                 obj.FreqAxes.Position(4) = panelFreq.InnerPosition(4)-panelFreq.BorderWidth-10;
                 obj.FreqAxes.Position(3) =  obj.StateAxes.Position(3);
-                panelFreq.SizeChangedFcn = @(~,~) resizeAxes(obj,panelFreq,obj.FreqAxes,false);
+                panelFreq.SizeChangedFcn = @(~,~) objWeakRef.Handle.resizeAxes(panelFreq,obj.FreqAxes,false);
                 obj.FreqAxes.Title.FontSize = 16;
                 hold(obj.FreqAxes,"on")
             end
@@ -540,6 +559,10 @@ classdef hPlotPacketTransitions < handle
             tickBase = tickBase - obj.pBarHeight*1.25;
             tickIdx = numel(yTickLabels)+1;
 
+            % Update the Y Ticks of WLAN nodes
+            [tickIdx,tickBase,yTicksList,yTickLabels,wlanFreqInfoWLAN] = ...
+                yTicksWLAN(obj,tickIdx,tickBase,yTicksList,yTickLabels,obj.WLANNodes);
+
             % Update the Y Ticks of Bluetooth nodes
             for idx = 1:numel(obj.BluetoothNodes)
                 [tickIdx,tickBase,yTicksList,yTickLabels] = ...
@@ -547,17 +570,22 @@ classdef hPlotPacketTransitions < handle
                     yTickLabels,obj.BluetoothNodes{idx},1);
             end
 
-            % Update the Y Ticks of interfering WLAN nodes
-            wlanFreqInfoIntWLAN = zeros(numel(obj.InterferingWLANNodes),3);
-            for idx = 1:numel(obj.InterferingWLANNodes)
-                [tickIdx,tickBase,yTicksList,yTickLabels,wlanFreqInfoIntWLAN(idx,:)] = ...
-                    yTicksIntWLAN(obj,0,tickIdx,tickBase,yTicksList, ...
-                    yTickLabels,obj.InterferingWLANNodes{idx});
+            % Update the Y Ticks of interfering nodes
+            wlanFreqInfoIntWLAN = [];
+            for idx = 1:numel(obj.InterferingNodes)
+                if isa(obj.InterferingNodes{idx},"helperInterferingWLANNode")
+                    wlanFreqInfoIntWLAN = zeros(numel(obj.InterferingNodes),3);
+                    [tickIdx,tickBase,yTicksList,yTickLabels,wlanFreqInfoIntWLAN(idx,:)] = ...
+                        yTicksIntWLAN(obj,0,tickIdx,tickBase,yTicksList, ...
+                        yTickLabels,obj.InterferingNodes{idx});
+                else
+                    [tickIdx,tickBase,yTicksList,yTickLabels] = ...
+                        yTicksBluetooth(obj,0,"",tickIdx,tickBase,yTicksList, ...
+                        yTickLabels,obj.InterferingNodes{idx},1);
+                end
             end
 
             % Update the Y Ticks of WLAN nodes
-            [~,~,yTicksList,yTickLabels,wlanFreqInfoWLAN] = ...
-                yTicksWLAN(obj,tickIdx,tickBase,yTicksList,yTickLabels,obj.WLANNodes);
             if ~isempty(wlanFreqInfoCoex)
                 wlanFreqInfo = [wlanFreqInfoCoex;wlanFreqInfoIntWLAN;wlanFreqInfoWLAN];
             else
@@ -587,40 +615,59 @@ classdef hPlotPacketTransitions < handle
             end
 
             % Find the operating states and node types based on the nodes added
-            if obj.pNumWLANNodes+obj.pNumInterferingWLANNodes>0 && obj.pNumBREDRNodes+obj.pNumLENodes==0 % Only WLAN nodes
+            statesList = string.empty;
+            typeList = string.empty;
+            if obj.pNumWLANNodes+obj.pNumInterferingNodes>0 && obj.pNumBREDRNodes+obj.pNumLENodes+obj.pNumLE6GHzNodes==0 % Only WLAN nodes
                 statesList = ["Transmission"; "Idle/EIFS/SIFS"; "Contention"; ...
                     "Reception (Destined to node)";"Reception"; "Reception Failure"];
                 obj.pStateColors = [obj.pTxColor;obj.pIdleEIFSColor;obj.pContendColor; ...
                     obj.pRxColorUs;obj.pRxColorOthers;obj.pRxColorFailure];
                 typeList = "WLAN";
                 obj.pFreqColors = obj.pCommunicationInfoWLAN{2};
-            elseif obj.pNumWLANNodes+obj.pNumInterferingWLANNodes==0 && obj.pNumBREDRNodes+obj.pNumLENodes>0 % Only Bluetooth nodes
+            elseif obj.pNumWLANNodes+obj.pNumInterferingNodes==0 && obj.pNumBREDRNodes+obj.pNumLENodes+obj.pNumLE6GHzNodes>0 % Only Bluetooth nodes
                 statesList = ["Transmission"; "Idle/EIFS/SIFS"; "Reception Success"; "Reception Failure"];
                 obj.pStateColors = [obj.pTxColor;obj.pIdleEIFSColor;obj.pRxColorSuccess;obj.pRxColorFailure];
-                if obj.pNumLENodes==0
+                if obj.pNumLENodes==0 && obj.pNumBREDRNodes>0
                     typeList = "Bluetooth BR/EDR";
                     obj.pFreqColors = obj.pCommunicationInfoBREDR{2};
-                elseif obj.pNumBREDRNodes==0
+                elseif obj.pNumBREDRNodes==0 && obj.pNumLENodes>0
                     typeList = "Bluetooth LE";
                     obj.pFreqColors = obj.pCommunicationInfoLE{2};
-                else
+                elseif obj.pNumBREDRNodes>0 && obj.pNumLENodes>0
                     typeList = ["Bluetooth LE"; "Bluetooth BR/EDR"];
                     obj.pFreqColors = [obj.pCommunicationInfoLE{2};obj.pCommunicationInfoBREDR{2}];
                 end
-            else
+            elseif obj.pNumWLANNodes+obj.pNumInterferingNodes>0 && obj.pNumBREDRNodes+obj.pNumLENodes+obj.pNumLE6GHzNodes>0
                 statesList = ["Transmission"; "Idle/EIFS/SIFS"; "Contention"; "Reception (Destined to node)"; ...
                     "Reception"; "Reception Success"; "Reception Failure"];
                 obj.pStateColors = [obj.pTxColor;obj.pIdleEIFSColor;obj.pContendColor; ...
                     obj.pRxColorUs;obj.pRxColorOthers;obj.pRxColorSuccess;obj.pRxColorFailure];
-                if obj.pNumLENodes==0
+                if obj.pNumLENodes==0 && obj.pNumBREDRNodes>0
                     typeList = ["WLAN"; "Bluetooth BR/EDR"];
-                elseif obj.pNumBREDRNodes==0
+                    obj.pFreqColors = [obj.pCommunicationInfoWLAN{2};obj.pCommunicationInfoBREDR{2}];
+                elseif obj.pNumBREDRNodes==0 && obj.pNumLENodes>0
                     typeList = ["WLAN"; "Bluetooth LE"];
-                else
+                    obj.pFreqColors = [obj.pCommunicationInfoWLAN{2};obj.pCommunicationInfoLE{2}];
+                elseif obj.pNumBREDRNodes>0 && obj.pNumLENodes>0
                     typeList = ["WLAN"; "Bluetooth LE"; "Bluetooth BR/EDR"];
+                    obj.pFreqColors = [obj.pCommunicationInfoWLAN{2};obj.pCommunicationInfoLE{2}; ...
+                        obj.pCommunicationInfoBREDR{2}];
+                elseif obj.pNumBREDRNodes==0 && obj.pNumLENodes==0
+                    typeList = "WLAN";
+                    obj.pFreqColors = obj.pCommunicationInfoWLAN{2};
                 end
-                obj.pFreqColors = [obj.pCommunicationInfoWLAN{2};obj.pCommunicationInfoLE{2}; ...
-                    obj.pCommunicationInfoBREDR{2}];
+            end
+            if obj.pNumLE6GHzNodes>0
+                if ~any(statesList=="Contention")
+                    statesList(end+1) = "Contention";
+                    obj.pStateColors(end+1,:) = obj.pContendColor;
+                end
+                typeList(end+1) = "Bluetooth LE 6 GHz";
+                obj.pFreqColors(end+1,:) = obj.pCommunicationInfoLE6GHz{2};
+            end
+            if obj.pNumInterferingNodes>0 && isa(obj.InterferingNodes{1},"helperInterferingBluetoothNode")
+                typeList(end+1) = "Interfering Bluetooth LE";
+                obj.pFreqColors(end+1,:) = obj.pCommunicationInfoLE{2};
             end
             obj.pStatePatch = cell(0,size(obj.pStateColors,1));
             obj.pFreqPatch = cell(0,size(obj.pFreqColors,1));
@@ -671,21 +718,21 @@ classdef hPlotPacketTransitions < handle
             editLabelHandle = createLabel(obj,figureGrid,"Min Time","Time Min Label",14,"bold",sliderRow-1,3);
             obj.pEditMinHandle = uieditfield(figureGrid,"numeric","Tag","Time Min Edit Field","Limits",[0 simulationTime]);
             assignRowColumnToLayout(obj,obj.pEditMinHandle,sliderRow-1,4);
-            obj.pEditMinHandle.ValueChangedFcn = @(~,eventData) updateXAxisLimits(obj,eventData.Value,true);
+            obj.pEditMinHandle.ValueChangedFcn = @(~,eventData) objWeakRef.Handle.updateXAxisLimits(eventData.Value,true);
             obj.pMinTimeSlider = uislider(figureGrid,"Tag","Time Min Slider");
             assignRowColumnToLayout(obj,obj.pMinTimeSlider,sliderRow,[3 5]);
             obj.pMinTimeSlider.Limits = [0 simulationTime];
-            obj.pMinTimeSlider.ValueChangedFcn = @(~,eventData) updateXAxisLimits(obj,eventData.Value,true);
+            obj.pMinTimeSlider.ValueChangedFcn = @(~,eventData) objWeakRef.Handle.updateXAxisLimits(eventData.Value,true);
 
             % Implements the slider for time maximum
             editLabelHandle = createLabel(obj,figureGrid,"Max Time","Time Max Label",14,"bold",sliderRow-1,7);
             obj.pEditMaxHandle = uieditfield(figureGrid,"numeric","Tag","Time Max Edit Field","Limits",[0 simulationTime]);
             assignRowColumnToLayout(obj,obj.pEditMaxHandle,sliderRow-1,8);
-            obj.pEditMaxHandle.ValueChangedFcn = @(edtHandle,eventData) updateXAxisLimits(obj,eventData.Value,false);
+            obj.pEditMaxHandle.ValueChangedFcn = @(edtHandle,eventData) objWeakRef.Handle.updateXAxisLimits(eventData.Value,false);
             obj.pMaxTimeSlider = uislider(figureGrid,"Tag","Time Max Slider");
             assignRowColumnToLayout(obj,obj.pMaxTimeSlider,sliderRow,[6 8]);
             obj.pMaxTimeSlider.Limits = [0 simulationTime];
-            obj.pMaxTimeSlider.ValueChangedFcn = @(~,eventData) updateXAxisLimits(obj,eventData.Value,false);
+            obj.pMaxTimeSlider.ValueChangedFcn = @(~,eventData) objWeakRef.Handle.updateXAxisLimits(eventData.Value,false);
 
             % Implements the drop down for frequency
             maxLimitsYFreq = [];
@@ -723,7 +770,7 @@ classdef hPlotPacketTransitions < handle
                         maxLimitsYFreq(2) = 7200;
                     end
                 else
-                    if obj.pNumWLANNodes+obj.pNumInterferingWLANNodes>0
+                    if obj.pNumWLANNodes+obj.pNumInterferingNodes>0
                         if (any(wlanFreqInfo(:,2)/1e6>=5000) && any(wlanFreqInfo(:,2)/1e6<=5900)) && ...
                                 any(wlanFreqInfo(:,2)/1e6>=5900)
                             ddItems = ["2.4 GHz band";"5 GHz band";"6 GHz band"];
@@ -737,6 +784,11 @@ classdef hPlotPacketTransitions < handle
                         end
                     end
                 end
+                if obj.pNumLE6GHzNodes>0
+                    ddItems = ["6 GHz band";"2.4 GHz band";"5 GHz band"];
+                    limitsYFreq = [5900 7200];
+                    maxLimitsYFreq = limitsYFreq;
+                end
                 obj.pMinMaxFreqLimits = maxLimitsYFreq;
                 obj.pWLANFreqLimits = wlanFreqLimits;
                 if numel(ddItems)>1
@@ -745,7 +797,7 @@ classdef hPlotPacketTransitions < handle
                         14,"normal",[rowIdxStart+1 rowIdxStart+5],[1 3]);
                     freqWindowHandle = uidropdown(freqLegendGrid,"Items",ddItems,"Value",ddItems(1),"Tag","Freq Drop Down");
                     assignRowColumnToLayout(obj,freqWindowHandle,[rowIdxStart+1 rowIdxStart+5],[4 6]);
-                    freqWindowHandle.ValueChangedFcn = @(freqVarHandle,eventData) freqDDCallback(obj,eventData);
+                    freqWindowHandle.ValueChangedFcn = @(freqVarHandle,eventData) objWeakRef.Handle.freqDDCallback(eventData);
                 end
                 calcYTicks(obj,limitsYFreq);
             end
@@ -757,12 +809,12 @@ classdef hPlotPacketTransitions < handle
             % Check box for full view
             checkBoxHandle = uicheckbox(cfgGrid,"Text","Full view","FontSize",14,"Tag","Full View");
             assignRowColumnToLayout(obj,checkBoxHandle,1,1);
-            checkBoxHandle.ValueChangedFcn = @(checkHandle,eventData) fullViewUpdate(obj);
+            checkBoxHandle.ValueChangedFcn = @(checkHandle,eventData) objWeakRef.Handle.fullViewUpdate();
 
             % Save Snip button
             saveImageHandle = uibutton(cfgGrid,"Text","Export","FontSize",14,"Tag","Export");
             assignRowColumnToLayout(obj,saveImageHandle,2,1);
-            saveImageHandle.ButtonPushedFcn = @(btnHandle,eventData) saveSnipCallback(obj,obj.PacketCommUIFigure);
+            saveImageHandle.ButtonPushedFcn = @(btnHandle,eventData) objWeakRef.Handle.saveSnipCallback(obj.PacketCommUIFigure);
 
             % Implements scrollbar for more number of nodes
             if numel(yTickLabels)>obj.pMaxNodesToDisplay
@@ -773,16 +825,16 @@ classdef hPlotPacketTransitions < handle
                 else
                     assignRowColumnToLayout(obj,verticalSliderHandle,[3 8],1);
                 end
-                verticalSliderHandle.ValueChangedFcn = @(sliderUI,eventData) nodeSliderCallback(obj,eventData);
+                verticalSliderHandle.ValueChangedFcn = @(sliderUI,eventData) objWeakRef.Handle.nodeSliderCallback(eventData);
             end
 
             % Adds the line at t=0
             updateLine(obj,[],0)
 
             % Add callbacks to X axis of the state and frequency axes
-            obj.StateAxes.XAxis.LimitsChangedFcn = @(src,evt) xLimChangedFcn(obj,src,evt);
+            obj.StateAxes.XAxis.LimitsChangedFcn = @(src,evt) objWeakRef.Handle.xLimChangedFcn(src,evt);
             if obj.FrequencyPlotFlag
-                obj.FreqAxes.XAxis.LimitsChangedFcn = @(src,evt) xLimChangedFcn(obj,src,evt);
+                obj.FreqAxes.XAxis.LimitsChangedFcn = @(src,evt) objWeakRef.Handle.xLimChangedFcn(src,evt);
             end
 
             % Disable interactions during the run time of simulation
@@ -1603,11 +1655,8 @@ classdef hPlotPacketTransitions < handle
                 wlanNodeYTickIdx = wlanNodeYTickIdx(wlanDeviceYTickIdx);
             end
 
-            % Get the channel frequency and bandwidth
-            devCfg = getDeviceConfig(obj, nodes{nodeIdx});
-            centerFrequency = devCfg(deviceIdx).ChannelFrequency/1e6;
-            channelBandwidth = devCfg(deviceIdx).ChannelBandwidth/1e6;
-            channelFrequencyStart = centerFrequency-(channelBandwidth/2);
+            channelBandwidth = [];
+            channelFrequencyStart = [];
             fillColor = [];
             freqPlot = false;
             % Update information based on the state of received information
@@ -1622,13 +1671,15 @@ classdef hPlotPacketTransitions < handle
                         startTime = notificationData.CurrentTime;
                         duration = notificationData.Duration;
                         freqPlot = true;
+                        centerFrequency = notificationData.Frequency/1e6;
+                        channelBandwidth = notificationData.Bandwidth/1e6;
+                        channelFrequencyStart = centerFrequency-(channelBandwidth/2);
                 end
 
             else % MPDUDecoded event. This event is triggered after decoding of the received packet
                 if all(notificationData.FCSFail) || notificationData.PHYDecodeFail
                     % Received packet failed decoding at PHY or during FCS check at MAC
                     fillColor = obj.pRxColorFailure;
-                    freqPlot = true;
                 else % Successful decoding at MAC
 
                     % Find the address of the received packet
@@ -1653,7 +1704,6 @@ classdef hPlotPacketTransitions < handle
                     if strcmp(destinationMACAddress,receivedMACAddress)
                         % Expected MAC address is same, hence received packet is successful.
                         fillColor = obj.pRxColorUs;
-                        freqPlot = true;
                     elseif strcmp(destinationMACAddress,"FFFFFFFFFFFF") % Broadcast
                         % Initialize a flag indicating if received packet is destined to received
                         % node
@@ -1683,7 +1733,6 @@ classdef hPlotPacketTransitions < handle
                         % but not destined to the node, hence Reception Others state.
                         if isDestinedToUs
                             fillColor = obj.pRxColorUs;
-                            freqPlot = true;
                         else
                             fillColor = obj.pRxColorOthers;
                         end
@@ -1701,6 +1750,12 @@ classdef hPlotPacketTransitions < handle
 
                 % Get the start time of the PPDU
                 startTime = notificationData.PPDUStartTime;
+
+                % For channel occupancy plot
+                freqPlot = true;
+                centerFrequency = notificationData.Frequency/1e6;
+                channelBandwidth = notificationData.Bandwidth/1e6;
+                channelFrequencyStart = centerFrequency-(channelBandwidth/2);
             end
 
             if ~isempty(fillColor)
@@ -1747,29 +1802,47 @@ classdef hPlotPacketTransitions < handle
 
             notificationData = eventData.Data;
             % Update information based on the state of received information
-            if isfield(notificationData,"TransmittedPower")
+            if strcmp(eventData.EventName,"PacketTransmissionStarted")
                 fillColor = obj.pTxColor;
                 startTime = notificationData.CurrentTime;
-            else
+                duration = notificationData.PacketDuration;
+            elseif strcmp(eventData.EventName,"PacketReceptionEnded")
                 startTime = notificationData.CurrentTime-notificationData.PacketDuration;
                 if notificationData.SuccessStatus
                     fillColor = obj.pRxColorSuccess;
                 else
                     fillColor = obj.pRxColorFailure;
                 end
+                duration = notificationData.PacketDuration;
+            elseif strcmp(eventData.EventName,"ChannelAccessEnded")
+                startTime = notificationData.CurrentTime-notificationData.Duration;
+                fillColor = obj.pContendColor;
+                duration = notificationData.Duration;
             end
-            duration = notificationData.PacketDuration;
 
             % Get the frequency for the channel number received
-            channelNumber = notificationData.ChannelIndex;
-            if isa(srcNode,"bluetoothNode") || (isa(srcNode,"helperCoexNode")&&any(strcmp(notificationData.PHYMode,["BR","EDR2M","EDR3M"])))
+            if isa(srcNode,"bluetoothNode") || (isa(srcNode,"helperCoexNode") && any(strcmp(notificationData.PHYMode,["BR","EDR2M","EDR3M"])))
                 commInfo = obj.pCommunicationInfoBREDR;
                 channelBandwidth = 1;
+                channelNumber = notificationData.ChannelIndex;
                 channelFrequencyStart = 2402+channelNumber-0.5;
             else
-                commInfo = obj.pCommunicationInfoLE;
                 channelBandwidth = 2;
-                channelFrequencyStart = ((obj.pLECenterFrequencies(channelNumber+1))/1e6)-channelBandwidth/2;
+                channelFrequencyStart = [];
+                if isa(srcNode,"helperBluetoothLE6GHzNode")
+                    commInfo = obj.pCommunicationInfoLE6GHz;
+                    if ~strcmp(eventData.EventName,"ChannelAccessEnded")
+                        centerFrequency6000 = (5945:2:6423)*1e6;
+                        channelNumber = notificationData.ChannelIndex;
+                        channelFrequencyStart = ((centerFrequency6000(channelNumber+1))/1e6)-channelBandwidth/2;
+                    else
+                        channelBandwidth = [];
+                    end
+                else
+                    commInfo = obj.pCommunicationInfoLE;
+                    channelNumber = notificationData.ChannelIndex;
+                    channelFrequencyStart = ((obj.pLECenterFrequencies(channelNumber+1))/1e6)-channelBandwidth/2;
+                end
             end
 
             % Calculate the Y tick position
@@ -1782,12 +1855,13 @@ classdef hPlotPacketTransitions < handle
 
             % Store the packet information
             storeCommunicationInfo(obj,commInfo,startTime,duration,fillColor, ...
-                bluetoothNodeYTickIdx,true,channelFrequencyStart,channelBandwidth)
+                bluetoothNodeYTickIdx,~isempty(channelFrequencyStart),channelFrequencyStart,channelBandwidth)
         end
 
-        function interferingWLANPlotCallback(obj,srcNode,eventData)
-            %interferingWLANPlotCallback Calculates the information necessary for live
-            %state transition of interfering WLAN nodes and plots the transition
+        function interferingPlotCallback(obj,srcNode,eventData)
+            %interferingPlotCallback Calculates the information necessary
+            %for live state transition of interfering WLAN or Bluetooth
+            %nodes and plots the transition
 
             if ~obj.pIsInitialized
                 % If visualization is not initialized, create the visualization
@@ -1805,24 +1879,31 @@ classdef hPlotPacketTransitions < handle
             % Update information based on the state of received information
             fillColor = obj.pTxColor;
             startTime = notificationData.CurrentTime;
-            duration = notificationData.PacketDuration;
 
             % Get the frequency for the channel number received
-            commInfo = obj.pCommunicationInfoWLAN;
-            channelBandwidth = srcNode.Bandwidth/1e6;
-            channelFrequencyStart = (srcNode.CenterFrequency/1e6)-channelBandwidth/2;
+            if isa(srcNode,"helperInterferingWLANNode")
+                commInfo = obj.pCommunicationInfoWLAN;
+                channelBandwidth = srcNode.Bandwidth/1e6;
+                channelFrequencyStart = (srcNode.CenterFrequency/1e6)-channelBandwidth/2;
+                duration = notificationData.PacketDuration;
+            elseif isa(srcNode,"helperInterferingBluetoothNode")
+                commInfo = obj.pCommunicationInfoLE;
+                channelBandwidth = srcNode.Bandwidth/1e6;
+                channelFrequencyStart = (notificationData.CenterFrequency-notificationData.Bandwidth/2)/1e6;
+                duration = notificationData.Duration;
+            end
 
             % Calculate the Y tick position
-            intWLANNodeYTickIdx = find(srcNode.ID==obj.pYTickOrder(:,1));
-            if ~isscalar(intWLANNodeYTickIdx)
+            intNodeYTickIdx = find(srcNode.ID==obj.pYTickOrder(:,1));
+            if ~isscalar(intNodeYTickIdx)
                 % If more than one Y tick is found, check based on node type
-                intWLANDeviceYTickIdx = commInfo{1}==obj.pYTickOrder(intWLANNodeYTickIdx,3);
-                intWLANNodeYTickIdx = intWLANNodeYTickIdx(intWLANDeviceYTickIdx);
+                intDeviceYTickIdx = commInfo{1}==obj.pYTickOrder(intNodeYTickIdx,3);
+                intNodeYTickIdx = intNodeYTickIdx(intDeviceYTickIdx);
             end
 
             % Store the packet information
             storeCommunicationInfo(obj,commInfo,startTime,duration,fillColor, ...
-                intWLANNodeYTickIdx,true,channelFrequencyStart,channelBandwidth)
+                intNodeYTickIdx,true,channelFrequencyStart,channelBandwidth)
         end
 
         function storeCommunicationInfo(obj,CommunicationInfoTech,startTime,duration,fillColor, ...

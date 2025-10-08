@@ -1,4 +1,3 @@
-%Copyright 2024-2025 The MathWorks, Inc
 function hCheckWLANNodesConfiguration(wlanNodes)
 %hCheckWLANNodesConfiguration Checks if WLAN node properties are configured
 %correctly for all the input WLAN nodes
@@ -31,7 +30,8 @@ for nodeID = 1:numNodes
         devices{end+1} = devCfg{nodeID}; %#ok<*AGROW>
     else
         links{end+1} = devCfg{nodeID};
-        isEMLSRLink{end+1} = repmat(strcmp(wlanNodes(nodeID).DeviceConfig.EnhancedMultilinkMode, "EMLSR"), ...
+        isEMLSRLink{end+1} = repmat((strcmp(wlanNodes(nodeID).DeviceConfig.EnhancedMultilinkMode, "EMLSR")&&...
+            strcmp(wlanNodes(nodeID).DeviceConfig.Mode, "STA")), ...
             1,numel(devCfg{nodeID}));
     end
 end
@@ -40,10 +40,9 @@ links = [links{:}];
 isEMLSRLink = [isEMLSRLink{:}];
 numDevices = numel(devices) + numel(links);
 
-freqBWPairs = zeros(2,numDevices);
+operatingFreqRanges = zeros(numDevices,2);
 deviceCount = 1;
-aciModeled = false;
-cbwGreaterThan20MHz = false;
+aciNotModeled = false;
 for nodeID = 1:numNodes
     if nodeID>1
         if wlanNodes(nodeID).MACFrameAbstraction ~= wlanNodes(1).MACFrameAbstraction
@@ -56,29 +55,31 @@ for nodeID = 1:numNodes
     end
 
     endIndex = numel([devCfg{nodeID}(:)])-1;
-    aciModeled = aciModeled || any(~strcmp("co-channel",[devCfg{nodeID}(:).InterferenceModeling]));
-    cbwGreaterThan20MHz = cbwGreaterThan20MHz || any([devCfg{nodeID}(:).ChannelBandwidth] > 20e6);
-    freqBWPairs(1,deviceCount:deviceCount+endIndex) = [devCfg{nodeID}(:).ChannelFrequency];
-    freqBWPairs(2,deviceCount:deviceCount+endIndex) = [devCfg{nodeID}(:).ChannelBandwidth];
+    operatingFreqRanges(deviceCount:deviceCount+endIndex,1) = [devCfg{nodeID}(:).ChannelFrequency]-([devCfg{nodeID}(:).ChannelBandwidth]/2);
+    operatingFreqRanges(deviceCount:deviceCount+endIndex,2) = [devCfg{nodeID}(:).ChannelFrequency]+([devCfg{nodeID}(:).ChannelBandwidth]/2);
     deviceCount = deviceCount+endIndex+1;
+
+    aciNotModeled = aciNotModeled || any(strcmp("co-channel",[devCfg{nodeID}(:).InterferenceModeling]));
 end
 
-if aciModeled && cbwGreaterThan20MHz
-    error("hCheckWLANNodesConfiguration:BandwidthACIIncompatible","If adjacent channel interference is modeled in any node, all nodes in the network must be configured with 20 MHz channel bandwidth.");
-end
 
-freqBWPairs = sortrows(freqBWPairs.',[1 2]);
-uniqueFreqBWPairs = unique(freqBWPairs,'rows');
-
-for freqID = 1:numel(uniqueFreqBWPairs(:,1))-1
-    if uniqueFreqBWPairs(freqID,:) == uniqueFreqBWPairs(freqID+1,:)
-        continue;
-    else
-        if uniqueFreqBWPairs(freqID,1) ~= uniqueFreqBWPairs(freqID+1,1) %Check for frequency mismatch
-            continue; %Continue since there can be multiple frequencies
-        elseif uniqueFreqBWPairs(freqID,2) ~= uniqueFreqBWPairs(freqID+1,2) % Check for bandwidth mismatch
-            error("hCheckWLANNodesConfiguration:BandwidthMismatch","Nodes operating in the same channel frequency must have the same channel bandwidth.");
-        end
+% Check whether frequencies of any devices/links are overlapping
+operatingFreqRanges = unique(operatingFreqRanges,'rows');
+[~,sortedIdx] = sort(operatingFreqRanges(:,1));
+operatingFreqRanges = operatingFreqRanges(sortedIdx,:);
+for freqIdx = 1:size(operatingFreqRanges, 1)-1
+    freqRange1 = operatingFreqRanges(freqIdx,:);
+    freqRange2 = operatingFreqRanges(freqIdx+1,:);
+    freqOverlap = min(freqRange1(2), freqRange2(2))-max(freqRange1(1), freqRange2(1));
+    isFreqOverlap = freqOverlap>0;
+    if isFreqOverlap && aciNotModeled
+        error("hCheckWLANNodesConfiguration:NeedACIForPartialOverlappingFreqs",...
+            "Specified node configurations cause partial frequency overlap between " + ...
+            "the operating channels. To simulate the impact of signals with center " + ...
+            "frequencies differing from the specified node configuration, specify " + ...
+            "the InterferenceModeling property as 'overlapping-adjacent-channel' " + ...
+            "or 'non-overlapping-adjacent-channel'. Alternatively, configure the " + ...
+            "operating channels and bandwidths to prevent partial overlaps.");
     end
 end
 
