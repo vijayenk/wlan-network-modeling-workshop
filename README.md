@@ -40,9 +40,10 @@ To Run:
 
 ### MathWorks Products (https://www.mathworks.com)
 
-Requires MATLAB release R2024b or newer
+Requires the lastest MATLAB release
 - [Communications Toolbox Wireless Network Simulation Library;](https://www.mathworks.com/matlabcentral/fileexchange/119923-communications-toolbox-wireless-network-simulation-library)
 - [WLAN Toolbox&trade;](https://www.mathworks.com/products/wlan.html)
+- [Bluetooth Toolbox™](https://in.mathworks.com/products/bluetooth.html)
 - [DSP System Toolbox&trade;](https://www.mathworks.com/products/dsp-system.html)
 - [Communications Toolbox&trade;](https://www.mathworks.com/products/communications.html)
 - [Signal Processing Toolbox&trade;](https://www.mathworks.com/products/signal.html)
