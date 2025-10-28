@@ -2,9 +2,9 @@
 
 ## Description:
 
-The WLAN Network Modeling Workshop provides participants with practical, hands-on experience in end-to-end WLAN network modeling using MATLAB.
-Through structured exercises, attendees will learn to efficiently develop code in MATLAB to model and simulate Wi-Fi 7 (802.11be) networks. 
-The workshop enables participants to visualize network behavior and assess performance metrics in realistic scenarios with minimal programming effort.
+The WLAN Network Modeling Workshop offers participants a practical, hands-on introduction to end-to-end WLAN network modeling using MATLAB.
+Through guided exercises, attendees will learn how to efficiently model and simulate Wi-Fi 7 (IEEE 802.11be) networks, as well as study the coexistence of WLAN and Bluetooth systems.
+The workshop enables participants to visualize network behavior and evaluate key performance metrics in realistic scenarios with minimal programming effort.
 
 
 ## Target Audience:
@@ -19,14 +19,14 @@ This workshop is intended for WLAN System Engineers and WLAN PHY/MAC Engineers w
 * Record APP, MAC, and PHY statistics per node
 * Implement multilink operations, including enhanced multi-link single radio (eMLSR) and simultaneous transmit and receive (STR) modes
 
-This repo contains the files required to run the hands-on WLAN network modeling workshop in MATLAB&reg;. The "Exercise" files require code additions to  
-run.  The "Solution Scripts" files have the required code additions and run  
+This repo contains the files required to run the hands-on WLAN network modeling workshop in MATLAB&reg;. 
+The "Exercise" files require code additions to run. The "Solution Scripts" files have the required code additions and run  
 to completion.
 
 The files enable the following exercises:  
 1.  Exercise 1 - Operate the simulation engine, configure WLAN nodes, create a simple network, and see statistics  
-2.  Exercise 2 - Configure traffic models, visualize QoS, and enable PCAP logging.  
-3.  Exercise 3 - Implement custom channel models 
+2.  Exercise 2 - Configure traffic models, QoS, and model interference.   
+3.  Exercise 3 - Implement custom channel model for WLAN Network
 4.  Exercise 4 - Simulate a network with MLO nodes(WiFi-7)
 
 ## Setup 
