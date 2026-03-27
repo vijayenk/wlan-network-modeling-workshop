@@ -23,26 +23,21 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
 %   hSLSTGaxMultiFrequencySystemChannel properties:
 %
 %   Channels   - Array of system channels; one channel per frequency.
-%   ChannelFcn - Function handle to channel for all nodes and links in
-%                the simulation
 %
 %   hSLSTGaxMultiFrequencySystemChannel methods:
 %
-%   getChannel - Returns the channel object for a signal and receiver
-%   getLink    - Returns the link structure for a signal and receiver
+%   channelFunction - Returns function handle to apply channel impairments 
+%   getChannel      - Returns the channel object for a signal and receiver
+%   getLink         - Returns the link structure for a signal and receiver
 
 %   Copyright 2022-2025 The MathWorks, Inc.
 
     properties
         %Channels Array of system channels; one channel per frequency
-        %   The class of Channels depends on PHYAbstractionMethod specified
-        %   in NODES:
-        %    "none" - array of hSLSTGaxSystemChannel objects
+        %   The class of Channels depends on PHYModel specified in NODES:
+        %    "full-phy" - array of hSLSTGaxSystemChannel objects
         %    otherwise - array of hSLSTGaxAbtractSystemChannel objects
         Channels;
-        %ChannelFcn Function handle to channel for all nodes and links in
-        %the simulation
-        ChannelFcn;
     end
 
     properties (Access=private)
@@ -51,6 +46,7 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
         DeviceInfo;
         LinkActiveWithinChannel; % NumLinks-by-NumChannels logical matrix indicating if a link is active within a channel
         LinkNodeID; % NumLinks-by-2 matrix of the sorted Node IDs in each link
+        DeviceNumToModel; % NumLinks-by-2 matrix of the device numbers in each link
     end
 
     methods
@@ -77,7 +73,7 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
                 'TransmitReceiveDistance',15,...
                 'ChannelFiltering',false,...
                 'OutputDataType','single', ...
-                'EnvironmentalSpeed',0); % Stationary
+                'EnvironmentalSpeed',0); % Stationary channel
             validate = true; % Validate channels by default
             nvpairStart = 1;
             if nargin>1
@@ -99,22 +95,22 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
             % Validate the nodes
             if iscell(nodes)
                 for idx = 1:numel(nodes)
-                    validateattributes(nodes{idx},["bluetoothLENode","wlanNode"],{'scalar'},mfilename,"nodes");
+                    validateattributes(nodes{idx},["bluetoothNode","bluetoothLENode","wlanNode"],{'scalar'},mfilename,"nodes");
                 end
             else
-                validateattributes(nodes(1),["bluetoothLENode","wlanNode"],{'scalar'},mfilename,"nodes");
+                validateattributes(nodes(1),["bluetoothNode","bluetoothLENode","wlanNode"],{'scalar'},mfilename,"nodes");
                 nodes = num2cell(nodes);
             end
 
             % Segregate the nodes to WLAN and Bluetooth nodes
             wlanNodes = nodes(cellfun(@(x) isa(x,"wlanNode"),nodes));
             numWLANNodes = numel(wlanNodes);
-            leNodes = nodes(cellfun(@(x) isa(x,"bluetoothLENode"),nodes));
-            numLENodes = numel(leNodes);
+            bluetoothNodes = nodes(cellfun(@(x) isa(x,"bluetoothLENode")||isa(x,"bluetoothNode"),nodes));
+            numBluetoothNodes = numel(bluetoothNodes);
 
             % Select type of channel model depending on PHY abstraction used. If
-            % Bluetooth LE nodes exist, always full PHY.
-            obj.UseFullPHY = numLENodes>0 || wlanNodes{1}.PHYAbstractionMethod == "none";
+            % Bluetooth BR/EDR or LE nodes exist, always full PHY.
+            obj.UseFullPHY = numBluetoothNodes>0 || wlanNodes{1}.PHYModel == "full-phy";
 
             % Create vectors of parameters for all devices in all nodes
             freqAllDevices = [];                 % Center frequency
@@ -127,12 +123,12 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
             % Get PHY parameters of WLAN
             numWLANDevicesTotal = 0;
             for n = 1:numWLANNodes
-                if numLENodes>0
-                    assert((wlanNodes{n}.PHYAbstractionMethod=="none") == obj.UseFullPHY, ...
-                        'When LE nodes are added to the simulation all WLAN nodes must be configured to use no PHY abstraction.')
+                if numBluetoothNodes>0
+                    assert((wlanNodes{n}.PHYModel=="full-phy") == obj.UseFullPHY, ...
+                        'When Bluetooth BR/EDR or LE nodes are added to the simulation all WLAN nodes must be configured to use no PHY abstraction.')
                 else
-                    assert((wlanNodes{n}.PHYAbstractionMethod=="none") == obj.UseFullPHY, ...
-                        'All nodes must be configured to use the same PHY abstraction method')
+                    assert((wlanNodes{n}.PHYModel=="full-phy") == obj.UseFullPHY, ...
+                        'All nodes must be configured to use the same PHY model')
                 end
                 devCfg = getDeviceConfig(wlanNodes{n});
                 for d = 1:numel(devCfg)
@@ -146,15 +142,15 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
                     interferenceModelingAllDevices = [interferenceModelingAllDevices devCfg(d).InterferenceModeling];
                 end
             end
-            % Get PHY parameters of LE
-            for n = 1:numLENodes
-                freqAllDevices = [freqAllDevices leNodes{n}.ReceiveFrequency];
-                bwAllDevices = [bwAllDevices leNodes{n}.ReceiveBandwidth];
+            % Get PHY parameters of Bluetooth BR/EDR and LE nodes
+            for n = 1:numBluetoothNodes
+                freqAllDevices = [freqAllDevices bluetoothNodes{n}.ReceiveFrequency];
+                bwAllDevices = [bwAllDevices bluetoothNodes{n}.ReceiveBandwidth];
                 nodeNumAllDevices = [nodeNumAllDevices n+numWLANNodes];
-                nodeIDsAllDevices = [nodeIDsAllDevices leNodes{n}.ID];
+                nodeIDsAllDevices = [nodeIDsAllDevices bluetoothNodes{n}.ID];
                 deviceNumAllDevices = [deviceNumAllDevices 1];
                 numAntsAllDevices = [numAntsAllDevices 1];
-                interferenceModelingAllDevices = [interferenceModelingAllDevices leNodes{n}.InterferenceModeling];
+                interferenceModelingAllDevices = [interferenceModelingAllDevices bluetoothNodes{n}.InterferenceModeling];
             end
             obj.DeviceInfo = table;
             obj.DeviceInfo.NodeID = nodeIDsAllDevices';
@@ -191,7 +187,7 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
             % generate a packet from the first device to the second to
             % determine where there is a frequency overlap and it should be
             % modeled (this can be co-channel, overlapping, or adjacent).
-            packet = wirelessnetwork.internal.wirelessPacket;
+            packet = wirelessPacket;
             packet.Abstraction = true; % Set to avoid validation
             packet.Metadata.OversamplingFactor = 1.125; % Set to avoid validation
             modelChannel = false(height(linkDeviceIndices),1);
@@ -202,16 +198,14 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
                 deviceNum = deviceNumAllDevices(linkDeviceIndices(i,2));
                 node = nodes{rxNodeNum};
                 if isa(node,"wlanNode")
-                    packet.Type = 1; % WLAN
+                    packet.TechnologyType = wnet.TechnologyType.WLAN; % WLAN
                     % Create channels between all nodes which overlap in
                     % frequency, therefore ignore co-channel interference.
                     interferenceFidelity = node.InterferenceFidelity;
                     node.InterferenceFidelity = max(node.InterferenceFidelity,1); % Force interference model to not be co-channel
-                    modelChannel(i) = wlan.internal.sls.isFrequencyOverlapping(node,packet,deviceNum);
+                    modelChannel(i) = wlan.internal.utils.isFrequencyOverlapping(node,packet,deviceNum);
                     node.InterferenceFidelity = interferenceFidelity; % Restore
-                else
-                    packet.Type = 3; % Bluetooth LE
-                    % Initialize
+                else % Bluetooth
                     modelChannel(i) = false;
                     txStartFrequency = packet.CenterFrequency - packet.Bandwidth/2;
                     txEndFrequency = packet.CenterFrequency + packet.Bandwidth/2;
@@ -223,10 +217,16 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
                         offset = node.MaxInterferenceOffset;
                     end
 
-                    % Invoke channel if signal lies in the 2.4 GHz band. The 2.4 GHz
-                    % band starts at 2.4 GHz and ends at 2.4835 GHz.
-                    if (txStartFrequency >= node.BluetoothLEStartBand-offset && txStartFrequency <= node.BluetoothLEEndBand+offset) || ...
-                            (txEndFrequency >= node.BluetoothLEStartBand-offset && txEndFrequency <= node.BluetoothLEEndBand+offset)
+                    % Invoke channel if signal lies in the 2.4 GHz band.
+                    if isa(node,"bluetoothLENode")
+                        startBand = node.BluetoothLEStartBand;
+                        endBand = node.BluetoothLEEndBand;                        
+                    else
+                        startBand = node.BluetoothStartBand;
+                        endBand = node.BluetoothEndBand;
+                    end
+                    if (txStartFrequency >= startBand-offset && txStartFrequency <= endBand+offset) || ...
+                            (txEndFrequency >= startBand-offset && txEndFrequency <= endBand+offset)
                         % Model the channel
                         modelChannel(i) = true;
                     end
@@ -241,6 +241,7 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
 
             % Store the node IDs within this link sorted
             obj.LinkNodeID = sort(linkNodeIDs,2);
+            obj.DeviceNumToModel = deviceNumToModel;
 
             % The combined span of the bandwidth of two devices is used to
             % model the channel between them. Therefore set the channel
@@ -323,13 +324,15 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
             if validate
                 validateChannels(obj);
             end
-
-            % Function handle to return impaired signal
-            obj.ChannelFcn = @(rxInfo,signal)impairSignal(obj,signal,rxInfo);
         end
     end
 
     methods
+        function channelFcn = channelFunction(obj)
+        % Returns function handle to apply channel impairments
+            channelFcn = @(rxInfo,signal)impairSignal(obj,signal,rxInfo);
+        end
+
         function channel = getChannel(obj,sig,rxInfo)
             % Returns the system channel object for a link between
             % signal SIG and receiver info RXINFO
@@ -365,6 +368,105 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
             % Extract channel information
             link = getLink(channel,sig.TransmitterID,rxInfo.ID);
         end
+
+        function showChannels(obj,varargin)
+            % Show the channels, nodes, and devices.
+
+            % Set plotting option
+            % Default is to plot a line for each link
+            plotLinePerDevices = false;
+            if nargin>1
+                plotLinePerDevices = varargin{1};
+            end
+
+            allUniqueIDDevs = [obj.DeviceInfo.NodeID obj.DeviceInfo.DeviceNumber];
+            allUniqeDeviceStartStop = obj.DeviceInfo.FrequencyStartStop;
+
+            figure;
+            h = [];
+            lineLegendStr = strings(0,1);
+            j = 1;
+            numChannels = numel(obj.ChannelInfo);
+            for i = 1:numChannels
+                % Get unique devices in the channel
+                channelInfo = obj.ChannelInfo(i);
+                [~,ui] = unique(channelInfo.LinkDeviceIndices);
+                uniqueLinkNodeID = channelInfo.LinkNodeIDs(ui);
+                uniqueLinkDevice = channelInfo.LinkDevice(ui);
+                uniqueFreqs = channelInfo.LinkDeviceFrequencies(ui);
+                uniqueLinkDeviceStartFreq = uniqueFreqs-0.5.*channelInfo.linkDeviceBW(ui);
+                uniqueLinkDeviceEndFreq = uniqueFreqs+0.5.*channelInfo.linkDeviceBW(ui);
+
+                % Start and stop frequency of the channel
+                channelStartStop = channelInfo.CarrierFrequency+[-0.5 0.5]*channelInfo.SampleRate;
+
+                % Plot a patch for the channel
+                numLinksThisChannel = height(channelInfo.LinkNodeIDs);
+                numDevicesThisChannel = numel(uniqueLinkDevice);
+                if plotLinePerDevices
+                    patchHeight = numDevicesThisChannel;
+                    patchCenterVertOffset = 0.5;
+                    offset = j-1;
+                else
+                    % Plot a line for each link
+                    patchHeight = numLinksThisChannel;
+                    vertGapBetweenDevicesInLink = 0.25;
+                    patchCenterVertOffset = (1+vertGapBetweenDevicesInLink)/2;
+                    offset = j/2-1;
+                end
+                h(j) = patch([channelStartStop(1) channelStartStop(2) channelStartStop(2) channelStartStop(1)],offset+patchCenterVertOffset+[0 0 patchHeight patchHeight],i,'FaceAlpha',.3,'EdgeColor','none');
+                j = j+1;
+                hold on;
+
+                % Create legend entry for channel which states the links
+                % between nodes and devices within that channel
+                s = strings(1,numLinksThisChannel);
+                for l=1:numLinksThisChannel
+                    s(l) = join([channelInfo.LinkNodeIDs(l,1) "-" channelInfo.LinkDevice(l,1) " to " channelInfo.LinkNodeIDs(l,2) "-" channelInfo.LinkDevice(l,2)],'');
+
+                    if ~plotLinePerDevices
+                        % Plot a line for each link
+                        for k=1:2
+                            nodeIDDevThisLink = [channelInfo.LinkNodeIDs(l,k) channelInfo.LinkDevice(l,k)];
+                            nodeIdDevIdx = find(all(nodeIDDevThisLink==allUniqueIDDevs,2));
+                            h(j) = plot(allUniqeDeviceStartStop(nodeIdDevIdx,:,1)',repmat(offset+l+(k-1)*vertGapBetweenDevicesInLink,1,2)','-x','LineWidth',2,'SeriesIndex',nodeIdDevIdx);
+                            lineLegendStr(j) = join(["Node" nodeIDDevThisLink(1) " Device" nodeIDDevThisLink(2)],'');
+                            j = j+1;
+                        end
+                    end
+                end
+                s = join(s,', ');
+                if plotLinePerDevices
+                    lidx = j-1;
+                else
+                    % Plot a line for each link
+                    lidx = j-numLinksThisChannel*2-1;
+                end
+                lineLegendStr(lidx) = join(["Channel " i ", " s],'');
+
+                if plotLinePerDevices
+                    % Plot a line for each NodeID and Device combination, with
+                    % the same color for all channels
+                    for l = 1:numDevicesThisChannel
+                        deviceStartStopFrequency = [uniqueLinkDeviceStartFreq(l); uniqueLinkDeviceEndFreq(l)];
+                        h(j) = plot(deviceStartStopFrequency,repmat(offset+l,1,2)','-x','LineWidth',2,'SeriesIndex',find(all([uniqueLinkNodeID(l) uniqueLinkDevice(l)]==allUniqueIDDevs,2)));
+                        lineLegendStr(j) = join(["Node" uniqueLinkNodeID(l) " Device" uniqueLinkDevice(l)],'');
+                        j = j+1;
+                    end
+                end
+            end
+            if plotLinePerDevices
+                ylim([-1 j])
+            else
+                % Plot a line for each link
+                ylim([-1 j/2])
+            end
+            % Show only uniqie devices on the legend
+            [~,ui] = unique(lineLegendStr);
+            legend(h(ui),lineLegendStr(ui),location='eastoutside');
+            xlabel('Frequency (Hz)');
+            grid on;
+        end % showChannels
     end
 
     methods (Access=private)
@@ -423,27 +525,29 @@ classdef hSLSTGaxMultiFrequencySystemChannel < handle
         end
 
         function validateChannels(obj)
-            for ic = 1:numel(obj.ChannelInfo)
-                channelInfo = obj.ChannelInfo(ic);
-                % Validate that multiple devices in a node do not share the
-                % same channel with another node. A transmission from one
-                % node cannot be simultaneously received by multiple
-                % devices on a single node.
-                uniqueNodeLinks = unique(channelInfo.LinkNodeIDs,"rows");
-                if height(uniqueNodeLinks)~=height(channelInfo.LinkNodeIDs)
-                    % This condition is met if multiple device links exist
-                    % between nodes in this one channel
+            % Validate that multiple devices in a node do not share the
+            % same channel with another node. A transmission from one
+            % node cannot be simultaneously received by multiple
+            % devices on a single node.
 
-                    for iu = 1:height(uniqueNodeLinks)
-                        % Loop over the pair of nodes in a link until we
-                        % find one with multiple devices
-                        match = all(uniqueNodeLinks(iu,:)==channelInfo.LinkNodeIDs,2);
-                        if nnz(match)>1
-                            error('hSLSTGaxMultiFrequencySystemChannel:MultipleDevicesShareChannel', ...
-                                'Multiple devices or links in a node cannot receive a transmission from another node. Set BandAndChannel of devices or links in Node ID %d and Node ID %d so that the operating channels do not overlap within a node.', ...
-                                uniqueNodeLinks(iu,1),uniqueNodeLinks(iu,2));
-                        end
-                    end
+            % Get the unique pairs of node IDs that are linked
+            ur = unique(obj.LinkNodeID,"rows");
+            for ir = 1:height(ur)
+                % For each unique pair of nodes IDs which are linked, get
+                % the device numbers for all the links between these node
+                % IDs.
+                d = obj.DeviceNumToModel(all(obj.LinkNodeID==ur(ir,:),2),:);
+                numLinksBetweenTheseNodes = height(d);
+                % There must not be more than one link between a device on
+                % one node, and devices on another node. Therefore, the
+                % number of unique devices on each node must be the same as
+                % the number of links between these nodes.
+                numUniqueDevicesNode1 = numel(unique(d(:,1)));
+                numUniqueDevicesNode2 = numel(unique(d(:,2)));
+                if any(numLinksBetweenTheseNodes~=[numUniqueDevicesNode1 numUniqueDevicesNode2])
+                    error('hSLSTGaxMultiFrequencySystemChannel:MultipleDevicesShareChannel', ...
+                        'Multiple devices or links in a node cannot receive a transmission from another node. Set BandAndChannel of devices or links in Node ID %d and Node ID %d so that the operating channel of one node does not overlap with more than one operating channel of the other node.', ...
+                        ur(ir,1),ur(ir,2));
                 end
             end
         end

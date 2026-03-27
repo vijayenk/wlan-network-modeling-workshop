@@ -2,12 +2,12 @@ classdef hSLSTGaxSystemChannelBase < handle
 %hSLSTGaxSystemChannelBase Create a hSLSTGaxSystemChannelBase object
 %
 %   CM = hSLSTGaxSystemChannelBase(CHAN,NUMANTENNAS) returns a channel
-%   manager object for the specified channel configuration object CHAN and 
-%   an array containing the number of antennas per node NUMANTENNAS. This 
-%   assumes all nodes can transmit and receive and channels between the 
+%   manager object for the specified channel configuration object CHAN and
+%   an array containing the number of antennas per node NUMANTENNAS. This
+%   assumes all nodes can transmit and receive and channels between the
 %   nodes are reciprocal.
 %
-%   CHAN is a wlanTGaxChannel, wlanTGacChannel or wlanTGnChannel object. 
+%   CHAN is a wlanTGaxChannel, wlanTGacChannel or wlanTGnChannel object.
 %   The ChannelFiltering property must be set to false and the NumSamples
 %   property must be set. The channel configuration is assumed to be the
 %   same between all nodes.
@@ -22,7 +22,7 @@ classdef hSLSTGaxSystemChannelBase < handle
 %                               Doppler requirements of the channel.
 %                               You can edit channel properties, in
 %                               which case call the reset() method of
-%                               hSLSTGaxAbstractChannel to update the
+%                               hTGaxAbstractChannel to update the
 %                               channel sampling rate.
 %                     Node1   - Identifier of the first node in the link
 %                     Node2   - Identifier of the second node in the
@@ -50,7 +50,7 @@ classdef hSLSTGaxSystemChannelBase < handle
 
 %   Copyright 2022-2025 The MathWorks, Inc.
 
-   properties (Access=private)
+    properties (Access=private)
         Channels;      % Cell array of WLAN channel model objects
         PathGains;     % Cell array of path gains for generated links
         PathFilters;   % Cell array of path gains for generated links
@@ -72,7 +72,7 @@ classdef hSLSTGaxSystemChannelBase < handle
         %     Channel      - Channel model object
         %     Node1        - Identifier of first node in link
         %     Node2        - Identifier of second node in link
-        %     SampleRate   - Nominal sample rate of the link in Hz 
+        %     SampleRate   - Nominal sample rate of the link in Hz
         %     ShadowFading - Shadow fading loss for the link in dB
         Links;
         %CenterFrequency Channel operating frequency in Hz
@@ -120,7 +120,8 @@ classdef hSLSTGaxSystemChannelBase < handle
             % transmit and receive and channels between the nodes are
             % reciprocal.
             %
-            % CM = hSLSTGaxSystemChannelBase(...,ShadowFadingStandardDeviation=val)
+            % CM =
+            % hSLSTGaxSystemChannelBase(...,ShadowFadingStandardDeviation=val)
             % sets the shadow fading standard deviation in dB. The default
             % is 0 dB (no shadow fading).
 

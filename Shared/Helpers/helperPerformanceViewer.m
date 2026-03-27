@@ -1,4 +1,4 @@
-classdef hPerformanceViewer < handle
+classdef helperPerformanceViewer < handle
     %helperPerformanceViewer Performance metrics viewer (throughput, latency, and
     %packet loss ratio)
     %
@@ -90,7 +90,7 @@ classdef hPerformanceViewer < handle
 
     %% Constructor
     methods
-        function obj = hPerformanceViewer(nodes,simulationTime)
+        function obj = helperPerformanceViewer(nodes,simulationTime)
 
             % Validate the simulation time
             validateattributes(simulationTime,{'numeric'},{'nonempty','scalar','positive','finite'},mfilename,"simulationTime");
@@ -189,16 +189,16 @@ classdef hPerformanceViewer < handle
             obj.pSimulationTime = simulationTime;
             networkSimulator = wirelessNetworkSimulator.getInstance;
             if numel(obj.BluetoothBREDRNodes)>0
-                scheduleAction(networkSimulator,@(varargin) objWeakRef.Handle.calculateStats(obj.BluetoothBREDRNodes),[],obj.pSimulationTime);
+                schedulePostSimulationAction(networkSimulator,@(varargin) objWeakRef.Handle.calculateStats(obj.BluetoothBREDRNodes),[]);
             end
             if numel(obj.BluetoothLENodes)>0
-                scheduleAction(networkSimulator,@(varargin) objWeakRef.Handle.calculateStats(obj.BluetoothLENodes),[],obj.pSimulationTime);
+                schedulePostSimulationAction(networkSimulator,@(varargin) objWeakRef.Handle.calculateStats(obj.BluetoothLENodes),[]);
             end
             if numel(obj.WLANNodes)>0
-                scheduleAction(networkSimulator,@(varargin) objWeakRef.Handle.calculateStats(num2cell(obj.WLANNodes)),[],obj.pSimulationTime);
+                schedulePostSimulationAction(networkSimulator,@(varargin) objWeakRef.Handle.calculateStats(num2cell(obj.WLANNodes)),[]);
             end
             if numel(obj.CoexNodes)>0
-                scheduleAction(networkSimulator,@(varargin) objWeakRef.Handle.calculateStats(obj.CoexNodes),[],obj.pSimulationTime);
+                schedulePostSimulationAction(networkSimulator,@(varargin) objWeakRef.Handle.calculateStats(obj.CoexNodes),[]);
             end
         end
 
@@ -211,14 +211,6 @@ classdef hPerformanceViewer < handle
             %
             %   OBJ is an object of type helperPerformanceViewer.
 
-            % Calculate and plot the graph for WLAN Nodes
-            if numel(obj.WLANNodes)>0
-                [nodeNames,plr,throughput,latency] = getMetrics(obj,num2cell(obj.WLANNodes));
-                figHandle = plotBarGraph(obj,nodeNames,plr,throughput,latency,"Mbps",[0 ones(1,numel(obj.WLANNodes))],"Node Name");
-                figHandle.Tag = "WLAN Performance";
-                sgtitle("Performance of WLAN Nodes");
-            end
-
             % Calculate and plot the graph for Bluetooth Nodes
             if numel(obj.BluetoothBREDRNodes)>0 || numel(obj.BluetoothLENodes)>0
                 bluetoothNodes = [obj.BluetoothBREDRNodes obj.BluetoothLENodes];
@@ -226,6 +218,14 @@ classdef hPerformanceViewer < handle
                 figHandle = plotBarGraph(obj,nodeNames,plr,throughput,latency,"Mbps",[0 ones(1,numel(bluetoothNodes))],"Node Name");
                 figHandle.Tag = "Bluetooth Performance";
                 sgtitle("Performance of Bluetooth Nodes");
+            end
+
+            % Calculate and plot the graph for WLAN Nodes
+            if numel(obj.WLANNodes)>0
+                [nodeNames,plr,throughput,latency] = getMetrics(obj,num2cell(obj.WLANNodes));
+                figHandle = plotBarGraph(obj,nodeNames,plr,throughput,latency,"Mbps",[0 ones(1,numel(obj.WLANNodes))],"Node Name");
+                figHandle.Tag = "WLAN Performance";
+                sgtitle("Performance of WLAN Nodes");
             end
 
             % Calculate and plot the graph for coexistence Nodes
@@ -345,8 +345,8 @@ classdef hPerformanceViewer < handle
             % Number of indices found will be >1 for coexistence node. Hence find the
             % index in the list based on the device
             if numel(nodeIdx)>1
-                if isfield(notificationData,"PacketType")
-                    nodeIdx = nodeIdx(obj.pNodeTypeList(nodeIdx,3)==notificationData.PacketType);
+                if isfield(notificationData,"Type")
+                    nodeIdx = nodeIdx(obj.pNodeTypeList(nodeIdx,3)==notificationData.Type);
                 else
                     nodeIdx = nodeIdx(obj.pNodeTypeList(nodeIdx,3)==4);
                 end
