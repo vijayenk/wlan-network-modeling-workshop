@@ -1,0 +1,1874 @@
+{
+    "wlanMACFrameConfig":
+    {
+        "inputs":
+        [
+            {"name":"FrameType", "kind":"namevalue", "type":"choices={'RTS','CTS','ACK','Trigger','Data','Null','QoS Data','QoS Null','Beacon','Block Ack','CF-End'}"},
+            {"name":"FrameFormat", "kind":"namevalue", "type":"choices={'EHT-SU', 'HE-SU', 'HE-EXT-SU', 'Non-HT','HT-Mixed','VHT'}"},
+            {"name":"AckPolicy", "kind":"namevalue", "type":"choices={'Normal Ack/Implicit Block Ack Request','No Ack','No explicit acknowledgment/PSMP Ack/HTP Ack','Block Ack'}"},
+            {"name":"SleepMode", "kind":"namevalue", "type":"choices={'Deep', 'Light'}"},
+            {"kind":"properties","type":["wlanMACFrameConfig"]}
+        ]
+    },
+    "wlanMACManagementConfig":
+    {
+        "inputs":
+        [
+            {"name":"FrameType", "kind":"namevalue", "type":"choices={'Beacon'}"},
+            {"name":"BasicRates", "kind":"namevalue", "type":"choices={'1 Mbps','2 Mbps','5.5 Mbps','6 Mbps','9 Mbps','11 Mbps','12 Mbps','18 Mbps','24 Mbps','36 Mbps','48 Mbps','54 Mbps'}"},
+            {"name":"AdditionalRates", "kind":"namevalue", "type":"choices={'1 Mbps','2 Mbps','5.5 Mbps','6 Mbps','9 Mbps','11 Mbps','12 Mbps','18 Mbps','24 Mbps','36 Mbps','48 Mbps','54 Mbps'}"},
+            {"kind":"properties","type":["wlanMACManagementConfig"]}
+        ]
+    },
+    "wlanMACTriggerConfig":
+    {
+        "inputs":
+        [
+            {"name":"TriggerType", "kind":"namevalue", "type":"choices={'Basic', 'MU-RTS', 'MU-BAR'}"},
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW80+80 or CBW160'}"},
+            {"name":"HELTFTypeAndGuardInterval", "kind":"namevalue", "type":"choices={'1x HE-LTF + 1.6 us GI', '2x HE-LTF + 1.6 us GI', '4x HE-LTF + 3.2 us GI'}"},
+            {"kind":"properties","type":["wlanMACTriggerConfig"]}
+        ]
+    },
+    "wlanMACTriggerUserConfig":
+    {
+        "inputs":
+        [
+            {"name":"TriggerType", "kind":"namevalue", "type":"choices={'Basic', 'MU-RTS', 'MU-BAR'}"},
+            {"name":"RUAllocationRegion", "kind":"namevalue", "type":"choices={'primary 80MHz', 'secondary 80MHz'}"},
+            {"name":"ChannelCoding", "kind":"namevalue", "type":"choices={'BCC', 'LDPC'}"},
+            {"kind":"properties","type":["wlanMACTriggerUserConfig"]}
+        ]
+    },
+    "wlanMACFrame":
+    {
+        "inputs":
+        [
+            {"name":"payload", "kind":"ordered"},
+            {"name":"macCfg", "kind":"required"},
+            {"name":"phyCfg", "kind":"ordered"},
+            {"name":"OutputFormat", "kind":"namevalue", "type":"choices={'octets', 'bits'}"}
+        ]
+    },
+    "wlanMSDULengths":
+    {
+        "inputs":
+        [
+            {"name":"frameLength", "kind":"required"},
+            {"name":"macCfg", "kind":"required"},
+            {"name":"phyCfg", "kind":"ordered"}
+        ]
+    },
+    "wlanAMPDUDeaggregate":
+    {
+        "inputs":
+        [
+            {"name":"ampdu", "kind":"required"},
+            {"name":"phyCfg", "kind":"required"},
+            {"name":"DataFormat", "kind":"namevalue", "type":"choices={'octets', 'bits'}"},
+            {"name":"SuppressWarnings", "kind":"namevalue"}
+        ]
+    },
+    "wlanAMPDUDeaggregate":
+    {
+        "inputs":
+        [
+            {"name":"ampdu", "kind":"required"},
+            {"name":"phyFormat", "kind":"required", "type":"choices={'HT', 'VHT', 'HE-SU', 'HE-EXT-SU', 'HE-TB', 'HE-MU', 'EHT-SU'}"},
+            {"name":"DataFormat", "kind":"namevalue", "type":"choices={'octets', 'bits'}"},
+            {"name":"SuppressWarnings", "kind":"namevalue"}
+        ]
+    },
+    "wlanMPDUDecode":
+    {
+        "inputs":
+        [
+            {"name":"mpdu", "kind":"required"},
+            {"name":"phyCfg", "kind":"required"},
+            {"name":"DataFormat", "kind":"namevalue", "type":"choices={'octets', 'bits'}"},
+            {"name":"SuppressWarnings", "kind":"namevalue"}
+        ]
+    },
+    "wlanMPDUDecode":
+    {
+        "inputs":
+        [
+            {"name":"mpdu", "kind":"required"},
+            {"name":"phyFormat", "kind":"required", "type":"choices={'Non-HT', 'HT', 'VHT', 'HE-SU', 'HE-EXT-SU', 'HE-TB', 'HE-MU', 'EHT-SU'}"},
+            {"name":"DataFormat", "kind":"namevalue", "type":"choices={'octets', 'bits'}"},
+            {"name":"SuppressWarnings", "kind":"namevalue"}
+        ]
+    },
+    "wlanPSDULength":
+    {
+        "inputs":
+        [
+            {"name":"phyCfg", "kind":"required"},
+            {"name":"unit", "kind":"ordered", "type":"choices={'TxTime', 'NumDataSymbols'}"},
+            {"name":"value", "kind":"ordered", "type":"numeric"}
+        ]
+    },
+    "wlanAPEPLength":
+    {
+        "inputs":
+        [
+            {"name":"phyCfg", "kind":"required"},
+            {"name":"unit", "kind":"ordered", "type":"choices={'TxTime', 'NumDataSymbols'}"},
+            {"name":"value", "kind":"ordered", "type":"numeric"}
+        ]
+    },
+    "wlanDMGConfig":
+    {
+        "inputs":
+        [
+            {"name":"MCS", "kind":"namevalue", "type":"choices={'0','1','2','3','4','5','6','7','8','9','9.1','10','11','12','12.1','12.2','12.3','12.4','12.5','12.6','13','14','15','16','17','18','19','20','21','22','23','24'}"},
+            {"name":"PacketType", "kind":"namevalue", "type":"choices={'TRN-R','TRN-T'}"},
+            {"name":"TonePairingType", "kind":"namevalue", "type":"choices={'Static','Dynamic'}"},
+            {"kind":"properties","type":["wlanDMGConfig"]}
+        ]
+    },
+    "wlanDMGConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanDMGConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanDMGDataBitRecover":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"csi", "kind":"ordered"},
+            {"name":"cfgDMG", "kind":"required"},
+            {"name":"LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'bp','layered-bp','norm-min-sum','offset-min-sum'}"},
+            {"name":"MinSumScalingFactor", "kind":"namevalue"},
+            {"name":"MinSumOffset", "kind":"namevalue"},
+            {"name":"MaximumLDPCIterationCount", "kind":"namevalue"},
+            {"name":"EarlyTermination", "kind":"namevalue"}
+        ]
+    },
+    "wlanDMGHeaderBitRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxDMGHeader", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"csi", "kind":"ordered"},
+            {"name":"cfgDMG", "kind":"required"},
+            {"name":"LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'bp','layered-bp','norm-min-sum','offset-min-sum'}"},
+            {"name":"MinSumScalingFactor", "kind":"namevalue"},
+            {"name":"MinSumOffset", "kind":"namevalue"},
+            {"name":"MaximumLDPCIterationCount", "kind":"namevalue"},
+            {"name":"EarlyTermination", "kind":"namevalue"}
+        ]
+    },
+    "wlanS1GConfig":
+    {
+        "inputs":
+        [
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW1','CBW2','CBW4','CBW8','CBW16'}"},
+            {"name":"Preamble", "kind":"namevalue", "type":"choices={'Short','Long'}"},
+            {"name":"SpatialMapping", "kind":"namevalue", "type":"choices={'Direct','Hadamard','Fourier','Custom'}"},
+            {"name":"GuardInterval", "kind":"namevalue", "type":"choices={'Long','Short'}"},
+            {"name":"ResponseIndication", "kind":"namevalue", "type":"choices={'None','Normal','Long','NDP'}"},
+            {"kind":"properties","type":["wlanS1GConfig"]}
+        ]
+    },
+    "wlanS1GConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanS1GConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanVHTConfig":
+    {
+        "inputs":
+        [
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"SpatialMapping", "kind":"namevalue", "type":"choices={'Direct','Hadamard','Fourier','Custom'}"},
+            {"name":"ChannelCoding", "kind":"namevalue", "type":"choices={'BCC','LDPC'}"},
+            {"name":"GuardInterval", "kind":"namevalue", "type":"choices={'Long','Short'}"},
+            {"kind":"properties","type":["wlanVHTConfig"]}
+        ]
+    },
+    "wlanVHTConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanVHTConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanHTConfig":
+    {
+        "inputs":
+        [
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW20','CBW40'}"},
+            {"name":"SpatialMapping", "kind":"namevalue", "type":"choices={'Direct','Hadamard','Fourier','Custom'}"},
+            {"name":"ChannelCoding", "kind":"namevalue", "type":"choices={'BCC','LDPC'}"},
+            {"name":"GuardInterval", "kind":"namevalue", "type":"choices={'Long','Short'}"},
+            {"kind":"properties","type":["wlanHTConfig"]}
+        ]
+    },
+    "wlanHTConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanHTConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanNonHTConfig":
+    {
+        "inputs":
+        [
+            {"name":"Modulation", "kind":"namevalue", "type":"choices={'OFDM','DSSS'}"},
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"DataRate", "kind":"namevalue", "type":"choices={'1Mbps','2Mbps','5.5Mbps','11Mbps'}"},
+            {"name":"Preamble", "kind":"namevalue", "type":"choices={'Long','Short'}"},
+            {"name":"BandwidthOperation", "kind":"namevalue", "type":"choices={'Absent','Static','Dynamic'}"},
+            {"kind":"properties","type":["wlanNonHTConfig"]}
+        ]
+    },
+    "wlanNonHTConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanNonHTConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanWaveformGenerator":
+    {
+        "inputs":
+        [
+            {"name":"bits", "kind":"required"},
+            {"name":"cfgFormat", "kind":"required"},
+            {"name":"NumPackets", "kind":"namevalue"},
+            {"name":"IdleTime", "kind":"namevalue"},
+            {"name":"ScramblerInitialization", "kind":"namevalue"},
+            {"name":"WindowTransitionTime", "kind":"namevalue"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanHESUConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF', 'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A', 'HE-STF', 'HE-LTF', 'HE-Data', 'HE-PE'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanHEMUConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF', 'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A', 'HE-SIG-B', 'HE-STF', 'HE-LTF', 'HE-Data', 'HE-PE'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanHETBConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF', 'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A', 'HE-STF', 'HE-LTF', 'HE-Data', 'HE-PE'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanEHTTBConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF','L-LTF', 'L-SIG', 'RL-SIG', 'U-SIG', 'EHT-SIG', 'EHT-STF','EHT-LTF', 'EHT-Data', 'EHT-PE'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanEHTMUConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF','L-LTF','L-SIG','RL-SIG','U-SIG','EHT-SIG','EHT-STF','EHT-LTF','EHT-Data','EHT-PE'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanDMGConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'DMG-STF', 'DMG-CE', 'DMG-Header', 'DMG-Data', 'DMG-AGC', 'DMG-AGCSubfields', 'DMG-TRN', 'DMG-TRNCE', 'DMG-TRNSubfields'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanS1GConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'S1G-STF', 'S1G-LTF1', 'S1G-Data', 'S1G-SIG', 'S1G-LTF2N', 'S1G-SIG-A', 'S1G-DSTF', 'S1G-DLTF', 'S1G-SIG-B'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanVHTConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF', 'L-LTF', 'L-SIG', 'VHT-SIG-A', 'VHT-STF', 'VHT-LTF', 'VHT-SIG-B', 'VHT-Data'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanHTConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF', 'L-LTF', 'L-SIG', 'HT-SIG', 'HT-STF', 'HT-LTF', 'HT-Data'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanNonHTConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF', 'L-LTF', 'L-SIG', 'NonHT-Data'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFieldIndices":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required", "type":["wlanWURConfig"]},
+            {"name":"field", "kind":"ordered", "type":"choices={'L-STF', 'L-LTF', 'L-SIG', 'BPSK-Mark1','BPSK-Mark2','WUR-Sync','WUR-Data'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanPacketDetect":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"offset", "kind":"positional"},
+            {"name":"threshold", "kind":"ordered"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFormatDetect":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"chEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"},
+            {"name":"EqualizationMethod", "kind":"namevalue", "type":"choices={'ZF','MMSE'}"},
+            {"name":"PilotPhaseTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"SuppressWarnings", "kind":"namevalue"}
+        ]
+    },
+    "wlanSymbolTimingEstimate":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"threshold", "kind":"ordered"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanCoarseCFOEstimate":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"corrOffset", "kind":"ordered"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanFineCFOEstimate":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"corrOffset", "kind":"ordered"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTLTF":
+    {
+        "inputs":
+        [
+            {"name":"cfgVHT", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTLTFChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"demodSig", "kind":"required"},
+            {"name":"cfg", "kind":"required", "type":["wlanVHTConfig"]},
+            {"name":"span", "kind":"ordered"}
+        ]
+    },
+    "wlanVHTLTFChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"demodSig", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"numSTS", "kind":"positional"},
+            {"name":"span", "kind":"ordered"}
+        ]
+    },
+    "wlanLLTFChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"demodSig", "kind":"required"},
+            {"name":"cfg", "kind":"required", "type":["wlanNonHTConfig"]},
+            {"name":"span", "kind":"ordered"}
+        ]
+    },
+    "wlanLLTFChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"demodSig", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"span", "kind":"ordered"}
+        ]
+    },
+    "wlanVHTLTFDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required", "type":"numeric"},
+            {"name":"cfg", "kind":"required", "type":["wlanVHTConfig"]},
+            {"name":"OFDMSymbolOffset", "kind":"ordered"}
+        ]
+    },
+    "wlanVHTLTFDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"numSTS", "kind":"positional"},
+            {"name":"OFDMSymbolOffset", "kind":"ordered"}
+        ]
+    },
+    "wlanVHTSIGARecover":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"chEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20','CBW40','CBW80','CBW160'}"}
+        ]
+    },
+    "wlanVHTSIGBRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"chEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"userNumber", "kind":"positional"},
+            {"name":"numSTS", "kind":"ordered"}
+        ]
+    },
+    "wlanVHTSTF":
+    {
+        "inputs":
+        [
+            {"name":"cfgVHT", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanHTSIG":
+    {
+        "inputs":
+        [
+            {"name":"cfgHT", "kind":"required","type":["wlanHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanHTSIGRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"chEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20','CBW40'}"}
+        ]
+    },
+    "wlanHTSTF":
+    {
+        "inputs":
+        [
+            {"name":"cfgHT", "kind":"required","type":["wlanHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLLTF":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanNonHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLLTF":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLLTF":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLLTFDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"symOffset", "kind":"ordered"}
+        ]
+    },
+    "wlanLSIG":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanNonHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLSIG":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLSIG":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLSIGRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxSig", "kind":"required"},
+            {"name":"chEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160'}"}
+        ]
+    },
+    "wlanLSTF":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanNonHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLSTF":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanLSTF":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanTGacChannel":
+    {
+        "inputs":
+        [
+            {"kind":"properties","type":["wlanTGacChannel"]}
+        ]
+    },
+    "wlanTGahChannel":
+    {
+        "inputs":
+        [
+            {"kind":"properties","type":["wlanTGahChannel"]}
+        ]
+    },
+    "wlanTGaxChannel":
+    {
+        "inputs":
+        [
+            {"kind":"properties","type":["wlanTGaxChannel"]}
+        ]
+    },
+    "wlanTGayChannel":
+    {
+        "inputs":
+        [
+            {"kind":"properties","type":["wlanTGayChannel"]}
+        ]
+    },
+    "wlanTGnChannel":
+    {
+        "inputs":
+        [
+            {"kind":"properties","type":["wlanTGnChannel"]}
+        ]
+    },
+    "wlanBCCInterleave":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"type", "kind":"required", "type":"choices={'VHT','Non-HT'}"},
+            {"name":"numCBPSSI", "kind":"required"},
+            {"name":"cbw", "kind":"ordered", "type":"choices={'CBW1','CBW2','CBW4','CBW8','CBW16','CBW20','CBW40','CBW80','CBW160'}"}
+        ]
+    },
+    "wlanBCCDeinterleave":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"type", "kind":"required", "type":"choices={'VHT','Non-HT'}"},
+            {"name":"numCBPSSI", "kind":"required"},
+            {"name":"cbw", "kind":"ordered", "type":"choices={'CBW1','CBW2','CBW4','CBW8','CBW16','CBW20','CBW40','CBW80','CBW160'}"}
+        ]
+    },
+    "wlanBCCEncode":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"rate", "kind":"required", "type":"choices={'1/2','2/3','3/4','5/6'}"}
+        ]
+    },
+    "wlanBCCEncode":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"rate", "kind":"required"}
+        ]
+    },
+    "wlanBCCDecode":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"rate", "kind":"required", "type":"choices={'1/2','2/3','3/4','5/6'}"},
+            {"name":"tDepth", "kind":"flag"},
+            {"name":"decType", "kind":"flag", "type":"choices={'hard','soft'}"}
+        ]
+    },
+    "wlanBCCDecode":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"rate" , "kind":"required"},
+            {"name":"tDepth", "kind":"flag"},
+            {"name":"decType", "kind":"flag", "type":"choices={'hard','soft'}"}
+        ]
+    },
+    "wlanConstellationMap":
+    {
+        "inputs":
+        [
+            {"name":"bits", "kind":"required"},
+            {"name":"numBPSCS", "kind":"required"},
+            {"name":"phase", "kind":"ordered"},
+            {"name":"OutputDataType", "kind":"namevalue", "type":"choices={'single','double'}"}
+        ]
+    },
+    "wlanConstellationDemap":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"numBPSCS", "kind":"required"},
+            {"name":"demapType", "kind":"flag", "type":"choices={'hard','soft'}", "repeating":false},
+            {"name":"phase", "kind":"flag", "repeating":false},
+            {"name":"OutputDataType", "kind":"namevalue", "type":"choices={'single','double','int8'}"}
+        ]
+    },
+    "wlanSegmentParseBits":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW1','CBW2','CBW4','CBW8','CBW16','CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"numES", "kind":"required"},
+            {"name":"numCBPS", "kind":"required"},
+            {"name":"numBPSCS", "kind":"required"}
+        ]
+    },
+    "wlanSegmentDeparseBits":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW1','CBW2','CBW4','CBW8','CBW16','CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"numES", "kind":"required"},
+            {"name":"numCBPS", "kind":"required"},
+            {"name":"numBPSCS", "kind":"required"}
+        ]
+    },
+    "wlanSegmentDeparseSymbols":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW1','CBW2','CBW4','CBW8','CBW16','CBW20','CBW40','CBW80','CBW160'}"}
+        ]
+    },
+    "wlanSegmentParseSymbols":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW1','CBW2','CBW4','CBW8','CBW16','CBW20','CBW40','CBW80','CBW160'}"}
+        ]
+    },
+    "wlanHESUConfig":
+    {
+        "inputs":
+        [
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"SpatialMapping", "kind":"namevalue", "type":"choices={'Direct','Hadamard','Fourier','Custom'}"},
+            {"name":"ChannelCoding", "kind":"namevalue", "type":"choices={'BCC','LDPC'}"},
+            {"name":"PostFECPaddingSource", "kind":"namevalue", "type":"choices={'mt19937ar with seed','Global stream','User-defined'}"},
+            {"kind":"properties","type":["wlanHESUConfig"]}
+        ]
+    },
+    "wlanHESUConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanHESUConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanHEMUConfig":
+    {
+        "inputs":
+        [
+            {"name":"allocationIndex", "kind":"required"},
+            {"name":"NumTransmitAntennas", "kind":"namevalue"},
+            {"name":"PreHECyclicShifts", "kind":"namevalue"},
+            {"name":"STBC", "kind":"namevalue"},
+            {"name":"GuardInterval", "kind":"namevalue"},
+            {"name":"HELTFType", "kind":"namevalue"},
+            {"name":"SIGBMCS", "kind":"namevalue"},
+            {"name":"SIGBDCM", "kind":"namevalue"},
+            {"name":"UplinkIndication", "kind":"namevalue"},
+            {"name":"BSSColor", "kind":"namevalue"},
+            {"name":"SpatialReuse", "kind":"namevalue"},
+            {"name":"TXOPDuration", "kind":"namevalue"},
+            {"name":"HighDoppler", "kind":"namevalue"},
+            {"name":"LowerCenter26ToneRU", "kind":"namevalue"},
+            {"name":"UpperCenter26ToneRU", "kind":"namevalue"},
+            {"name":"MidamblePeriodicity", "kind":"namevalue"},
+            {"name":"PrimarySubchannel", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEMUConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanHEMUConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanHEMUUser":
+    {
+        "inputs":
+        [
+            {"name":"ruNumber", "kind":"required"},
+            {"name":"ChannelCoding", "kind":"namevalue", "type":"choices={'BCC','LDPC'}"},
+            {"name":"PostFECPaddingSource", "kind":"namevalue", "type":"choices={'mt19937ar with seed','Global stream','User-defined'}"},
+            {"kind":"properties","type":["wlanHEMUUser"]}
+        ]
+    },
+    "wlanHEMURU":
+    {
+        "inputs":
+        [
+            {"name":"ruSize", "kind":"required"},
+            {"name":"ruIndex", "kind":"required"},
+            {"name":"userNumbers", "kind":"required"},
+            {"name":"SpatialMapping", "kind":"namevalue", "type":"choices={'Direct','Hadamard','Fourier','Custom'}"},
+            {"kind":"properties","type":["wlanHEMURU"]}
+        ]
+    },
+    "wlanHETBConfig":
+    {
+        "inputs":
+        [
+            {"name":"TriggerMethod", "kind":"namevalue", "type":"choices={'TriggerFrame','TRS'}"},
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"SpatialMapping", "kind":"namevalue", "type":"choices={'Direct','Hadamard','Fourier','Custom'}"},
+            {"name":"ChannelCoding", "kind":"namevalue", "type":"choices={'BCC','LDPC'}"},
+            {"name":"PostFECPaddingSource", "kind":"namevalue", "type":"choices={'mt19937ar with seed','Global stream','User-defined'}"},
+            {"kind":"properties","type":["wlanHETBConfig"]}
+        ]
+    },
+    "wlanHETBConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanHETBConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanHEDataBitRecover":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"csi", "kind":"ordered"},
+            {"name":"cfgHE", "kind":"required", "type":[["wlanHESUConfig"],["wlanHETBConfig"],["wlanHERecoveryConfig"]]},
+            {"name":"LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'bp','layered-bp','norm-min-sum','offset-min-sum'}"},
+            {"name":"MinSumScalingFactor", "kind":"namevalue"},
+            {"name":"MinSumOffset", "kind":"namevalue"},
+            {"name":"MaximumLDPCIterationCount", "kind":"namevalue"},
+            {"name":"EarlyTermination", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEDataBitRecover":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"csi", "kind":"ordered"},
+            {"name":"cfgHE", "kind":"required", "type":["wlanHEMUConfig"]},
+            {"name":"userIndex", "kind":"required"},
+            {"name":"LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'bp','layered-bp','norm-min-sum','offset-min-sum'}"},
+            {"name":"MinSumScalingFactor", "kind":"namevalue"},
+            {"name":"MinSumOffset", "kind":"namevalue"},
+            {"name":"MaximumLDPCIterationCount", "kind":"namevalue"},
+            {"name":"EarlyTermination", "kind":"namevalue"}
+        ]
+    },
+    "wlanHERecoveryConfig":
+    {
+        "inputs":
+        [
+            {"name":"PacketFormat", "kind":"namevalue", "type":"choices={'HE-SU','HE-EXT-SU','HE-MU','Unknown'}"},
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW20','CBW40','CBW80','CBW160','Unknown'}"},
+            {"name":"PreamblePuncturing", "kind":"namevalue", "type":"choices={'Mode-1','Mode-2','Mode-3','Mode-4','None','Unknown'}"},
+            {"name":"ChannelCoding", "kind":"namevalue", "type":"choices={'BCC','LDPC','Unknown'}"},
+            {"kind":"properties","type":["wlanHERecoveryConfig"]}
+        ]
+    },
+    "wlanDMGOFDMInfo":
+    {
+    },
+    "wlanDMGOFDMDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanS1GOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'S1G-LTF1', 'S1G-Data', 'S1G-SIG', 'S1G-LTF2N', 'S1G-SIG-A', 'S1G-DLTF', 'S1G-SIG-B'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanS1GConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanS1GDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'S1G-LTF1', 'S1G-Data', 'S1G-SIG', 'S1G-LTF2N', 'S1G-SIG-A', 'S1G-DLTF', 'S1G-SIG-B'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanS1GConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A', 'HE-LTF', 'HE-Data'}"},
+            {"name":"cfg", "kind":"required","type":[["wlanHESUConfig"],["wlanHETBConfig"],["wlanHERecoveryConfig"]]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'HE-LTF', 'HE-Data'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanHEMUConfig"]},
+            {"name":"ruNumber", "kind":"required"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A', 'HE-SIG-B'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanHEMUConfig"]},
+            {"name":"ruNumber", "kind":"flag"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A', 'HE-SIG-B', 'HE-LTF', 'HE-Data'}"},
+            {"name":"chanbw", "kind":"required", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW160'}"},
+            {"name":"gi", "kind":"flag"},
+            {"name":"ru", "kind":"flag"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'EHT-LTF', 'EHT-Data'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanEHTMUConfig"]},
+            {"name":"ruNumber", "kind":"required"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'U-SIG', 'EHT-SIG'}"},
+            {"name":"cfg", "kind":"required", "type":[["wlanEHTMUConfig"],["wlanEHTRecoveryConfig"]]},
+            {"name":"ruNumber", "kind":"flag"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'U-SIG', 'EHT-LTF', 'EHT-Data'}"},
+            {"name":"cfg", "kind":"required", "type":[["wlanEHTTBConfig"],["wlanEHTRecoveryConfig"]]},
+            {"name":"ruNumber", "kind":"flag"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required","type":[["double","2d"],["single","2d"]]},
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'VHT-SIG-A', 'VHT-LTF', 'VHT-SIG-B', 'VHT-Data'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanVHTConfig","scalar"]},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue","type":["double","scalar",">=0","<=1"]},
+            {"name":"OversamplingFactor", "kind":"namevalue","type":["numeric","scalar",">=1"]}
+            
+        ]
+    },
+    "wlanHEDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A', 'HE-SIG-B', 'HE-LTF', 'HE-Data'}"},
+            {"name":"cfg", "kind":"required", "type":[["wlanHESUConfig"], ["wlanHETBConfig"], ["wlanHERecoveryConfig"]]},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'HE-LTF','HE-Data'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanHEMUConfig"]},
+            {"name":"ruNumber", "kind":"required"},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A','HE-SIG-B'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanHEMUConfig"]},
+            {"name":"ruNumber", "kind":"flag"},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanHEDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'HE-SIG-A', 'HE-SIG-B', 'HE-LTF', 'HE-Data'}"},
+            {"name":"chanbw", "kind":"required", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW160'}"},
+            {"name":"gi", "kind":"flag"},
+            {"name":"ltfType", "kind":"flag"},
+            {"name":"ru", "kind":"flag"},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'EHT-LTF', 'EHT-Data'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanEHTMUConfig"]},
+            {"name":"ruNumber", "kind":"required"},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'U-SIG', 'EHT-SIG'}"},
+            {"name":"cfg", "kind":"required", "type":[["wlanEHTMUConfig"], ["wlanEHTRecoveryConfig"]]},
+            {"name":"ruNumber", "kind":"flag"},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'RL-SIG', 'U-SIG', 'EHT-LTF', 'EHT-Data'}"},
+            {"name":"cfg", "kind":"required", "type":[["wlanEHTTBConfig"], ["wlanEHTRecoveryConfig"]]},
+            {"name":"ruNumber", "kind":"flag"},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'VHT-SIG-A', 'VHT-LTF', 'VHT-SIG-B', 'VHT-Data'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanVHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'VHT-SIG-A', 'VHT-LTF', 'VHT-SIG-B', 'VHT-Data'}"},
+            {"name":"chanbw", "kind":"required", "type":"choices={'CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"gi", "kind":"ordered", "type":"choices={'Long','Short'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'HT-SIG', 'HT-LTF', 'HT-Data'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'HT-SIG', 'HT-LTF', 'HT-Data'}"},
+            {"name":"chanbw", "kind":"required", "type":"choices={'CBW20','CBW40'}"},
+            {"name":"gi", "kind":"ordered", "type":"choices={'Long','Short'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanNonHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'NonHT-Data'}"},
+            {"name":"chanbw", "kind":"ordered", "type":"choices={'CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanNonHTOFDMInfo":
+    {
+        "inputs":
+        [
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'NonHT-Data'}"},
+            {"name":"cfg", "kind":"ordered", "type":["wlanNonHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanNonHTOFDMDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'NonHT-Data'}"},
+            {"name":"chanbw", "kind":"required", "type":"choices={'CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanNonHTOFDMDemodulate":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"field", "kind":"required", "type":"choices={'L-LTF', 'L-SIG', 'NonHT-Data'}"},
+            {"name":"cfg", "kind":"required", "type":["wlanNonHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"}
+        ]
+    },
+    "wlanReferenceSymbols":
+    {
+        "inputs":
+        [
+            {"name":"modScheme", "kind":"required","type":"choices={'BPSK','QBPSK','QPSK','16QAM','64QAM','256QAM','1024QAM','4096QAM','pi/2-BPSK','pi/2-QPSK','pi/2-16QAM','pi/2-64QAM'}"},
+            {"name":"phase", "kind":"flag"}
+        ]
+    },
+    "wlanReferenceSymbols":
+    {
+        "inputs":
+        [
+            {"name":"cfgFormat", "kind":"required"},
+            {"name":"userNum", "kind":"flag"}
+        ]
+    },
+    "wlanClosestReferenceSymbol":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required"},
+            {"name":"modScheme", "kind":"ordered","type":"choices={'BPSK','QBPSK','QPSK','16QAM','64QAM','256QAM','1024QAM','4096QAM','pi/2-BPSK','pi/2-QPSK','pi/2-16QAM','pi/2-64QAM'}"},
+            {"name":"phase", "kind":"flag"}
+        ]
+    },
+    "wlanClosestReferenceSymbol":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required"},
+            {"name":"cfgFormat", "kind":"required"},
+            {"name":"userNum", "kind":"flag"}
+        ]
+    },
+    "wlanHTData":
+    {
+        "inputs":
+        [
+            {"name":"PSDU", "kind":"required"},
+            {"name":"cfgHT", "kind":"required","type":["wlanHTConfig"]},
+            {"name":"SCRAMINIT", "kind":"ordered"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanHTDataRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxHTData", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"cfgHT", "kind":"required","type":["wlanHTConfig"]},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"},
+            {"name":"PilotPhaseTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"PilotAmplitudeTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"EqualizationMethod", "kind":"namevalue", "type":"choices={'ZF','MMSE'}"},
+            {"name":"LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'bp','layered-bp','norm-min-sum','offset-min-sum'}"},
+            {"name":"MinSumScalingFactor", "kind":"namevalue"},
+            {"name":"MinSumOffset", "kind":"namevalue"},
+            {"name":"MaximumLDPCIterationCount", "kind":"namevalue"},
+            {"name":"EarlyTermination", "kind":"namevalue"}
+        ]
+    },
+    "wlanHTSIGRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxHTSIG", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"chanBW", "kind":"required", "type":"choices={'CBW20','CBW40'}"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"},
+            {"name":"PilotPhaseTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"EqualizationMethod", "kind":"namevalue", "type":"choices={'ZF','MMSE'}"}
+        ]
+    },
+    "wlanLSIGRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxLSIG", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"chanBW", "kind":"required","type":"choices={'CBW5','CBW10','CBW20','CBW40','CBW80','CBW160'}"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"},
+            {"name":"PilotPhaseTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"EqualizationMethod", "kind":"namevalue", "type":"choices={'ZF','MMSE'}"}
+        ]
+    },
+    "wlanNonHTData":
+    {
+        "inputs":
+        [
+            {"name":"PSDU", "kind":"required"},
+            {"name":"cfgNonHT", "kind":"required","type":["wlanNonHTConfig"]},
+            {"name":"SCRAMINIT", "kind":"ordered"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanNonHTDataRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxNonHTData", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"cfgNonHT", "kind":"required","type":["wlanNonHTConfig"]},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"},
+            {"name":"PilotPhaseTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"PilotAmplitudeTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"EqualizationMethod", "kind":"namevalue", "type":"choices={'ZF','MMSE'}"}
+        ]
+    },
+    "wlanVHTData":
+    {
+        "inputs":
+        [
+            {"name":"PSDU", "kind":"required"},
+            {"name":"cfgVHT", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"SCRAMINIT", "kind":"ordered"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTDataRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxVHTData", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"cfgVHT", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"userNum", "kind":"ordered"},
+            {"name":"numSTS", "kind":"ordered"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"},
+            {"name":"PilotPhaseTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"PilotAmplitudeTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"EqualizationMethod", "kind":"namevalue", "type":"choices={'ZF','MMSE'}"},
+            {"name":"LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'bp','layered-bp','norm-min-sum','offset-min-sum'}"},
+            {"name":"MinSumScalingFactor", "kind":"namevalue"},
+            {"name":"MinSumOffset", "kind":"namevalue"},
+            {"name":"MaximumLDPCIterationCount", "kind":"namevalue"},
+            {"name":"EarlyTermination", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTSIGA":
+    {
+        "inputs":
+        [
+            {"name":"cfgVHT", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTSIGARecover":
+    {
+        "inputs":
+        [
+            {"name":"rxVHTSIGA", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"chanBW", "kind":"required"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"},
+            {"name":"PilotPhaseTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"EqualizationMethod", "kind":"namevalue", "type":"choices={'ZF','MMSE'}"}
+        ]
+    },
+    "wlanVHTSIGB":
+    {
+        "inputs":
+        [
+            {"name":"cfgVHT", "kind":"required","type":["wlanVHTConfig"]},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanVHTSIGBRecover":
+    {
+        "inputs":
+        [
+            {"name":"rxVHTSIGB", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"chanBW", "kind":"required"},
+            {"name":"userNum", "kind":"ordered"},
+            {"name":"numSTS", "kind":"ordered"},
+            {"name":"OFDMSymbolOffset", "kind":"namevalue"},
+            {"name":"PilotPhaseTracking", "kind":"namevalue", "type":"choices={'PreEQ','None'}"},
+            {"name":"EqualizationMethod", "kind":"namevalue", "type":"choices={'ZF','MMSE'}"}
+        ]
+    },
+    "wlanWURSubchannel":
+    {
+        "inputs":
+        [
+            {"name":"DataRate", "kind":"namevalue", "type":"choices={'LDR','HDR'}"},
+            {"name":"SymbolDesign", "kind":"namevalue", "type":"choices={'Example1','Example2','Example3','User-defined'}"},
+            {"kind":"properties","type":["wlanWURSubchannel"]}
+        ]
+    },
+    "wlanWURConfig":
+    {
+        "inputs":
+        [
+            {"name":"NumSubchannels", "kind":"ordered"},
+            {"kind":"properties","type":["wlanWURConfig"]}
+        ]
+    },
+    "wlanWURConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanWURConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanSampleRate":
+    {
+        "inputs":
+        [
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW1','CBW2','CBW4','CBW5','CBW8','CBW10','CBW16','CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanSampleRate":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "kind":"required"},
+            {"name":"OversamplingFactor", "kind":"namevalue"}
+        ]
+    },
+    "wlanChannelFrequency":
+    {
+        "inputs":
+        [
+            {"name":"channelnumber", "kind":"required", "type":"numeric"},
+            {"name":"band", "kind":"required", "type":"numeric"}
+        ]
+    },
+    "wlanSpectralFlatness":
+    {
+        "inputs":
+        [
+            {"name":"channelEst", "kind":"required"},
+            {"name":"format", "kind":"required", "type":"choices={'Non-HT'}"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW5', 'CBW10', 'CBW20', 'CBW40', 'CBW80', 'CBW160'}"}
+        ]
+    },
+    "wlanSpectralFlatness":
+    {
+        "inputs":
+        [
+            {"name":"channelEst", "kind":"required"},
+            {"name":"format", "kind":"required", "type":"choices={'HT'}"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20', 'CBW40'}"}
+        ]
+    },
+    "wlanSpectralFlatness":
+    {
+        "inputs":
+        [
+            {"name":"channelEst", "kind":"required"},
+            {"name":"format", "kind":"required", "type":"choices={'VHT'}"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW160'}"}
+        ]
+    },
+    "wlanSpectralFlatness":
+    {
+        "inputs":
+        [
+            {"name":"channelEst", "kind":"required"},
+            {"name":"format", "kind":"required", "type":"choices={'S1G'}"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW1','CBW2','CBW4','CBW8','CBW16'}"}
+        ]
+    },
+    "wlanSpectralFlatness":
+    {
+        "inputs":
+        [
+            {"name":"channelEst", "kind":"required"},
+            {"name":"format", "kind":"required", "type":"choices={'HE'}"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW160'}"}
+        ]
+    },
+    "wlanSpectralFlatness":
+    {
+        "inputs":
+        [
+            {"name":"channelEst", "kind":"required"},
+            {"name":"format", "kind":"required", "type":"choices={'EHT'}"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW160','CBW320'}"}
+        ]
+    },
+    "wlanVHTTrackPilotError":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required", "type": [["double","3d"],["single","3d"]]},
+            {"name":"chEst", "kind":"required", "type": [["double","3d"],["single","3d"]]},
+            {"name":"cfg", "kind":"required", "type":["wlanVHTConfig"]},
+            {"name":"field", "kind":"required", "type":"choices={'L-SIG','VHT-SIG-A','VHT-LTF','VHT-SIG-B','VHT-Data'}"},
+            {"name":"TrackPhase", "kind":"namevalue", "type": ["logical","scalar"]},
+            {"name":"TrackAmplitude", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanHETrackPilotError":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW160'}"},
+            {"name":"field", "kind":"required", "type":"choices={'L-SIG','RL-SIG','HE-SIG-A','HE-SIG-B'}"},
+            {"name":"TrackPhase", "kind":"namevalue", "type": ["logical","scalar"]},
+            {"name":"TrackAmplitude", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanHETrackPilotError":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":["wlanHESUConfig"]},
+            {"name":"field", "kind":"required", "type":"choices={'L-SIG','RL-SIG','HE-SIG-A','HE-LTF','HE-Data'}"},
+            {"name":"TrackPhase", "kind":"namevalue", "type": ["logical","scalar"]},
+            {"name":"TrackAmplitude", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanHETrackPilotError":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":["wlanHEMUConfig"]},
+            {"name":"field", "kind":"required", "type":"choices={'L-SIG','RL-SIG','HE-SIG-A','HE-SIG-B','HE-LTF','HE-Data'}"},
+            {"name":"ruNumber", "kind":"ordered"},
+            {"name":"TrackPhase", "kind":"namevalue", "type": ["logical","scalar"]},
+            {"name":"TrackAmplitude", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanHETrackPilotError":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":["wlanHERecoveryConfig"]},
+            {"name":"field", "kind":"required", "type":"choices={'L-SIG','RL-SIG','HE-SIG-A','HE-SIG-B','HE-LTF','HE-Data'}"},
+            {"name":"TrackPhase", "kind":"namevalue", "type": ["logical","scalar"]},
+            {"name":"TrackAmplitude", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanEHTTrackPilotError":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":["wlanEHTMUConfig"]},
+            {"name":"field", "kind":"required", "type":"choices={'L-SIG','RL-SIG','U-SIG','EHT-SIG','EHT-LTF','EHT-Data'}"},
+            {"name":"ruNumber", "kind":"ordered"},
+            {"name":"TrackPhase", "kind":"namevalue", "type": ["logical","scalar"]},
+            {"name":"TrackAmplitude", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanEHTTrackPilotError":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"chanEst", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":["wlanEHTRecoveryConfig"]},
+            {"name":"field", "kind":"required", "type":"choices={'L-SIG','RL-SIG','U-SIG','EHT-SIG','EHT-LTF','EHT-Data'}"},
+            {"name":"TrackPhase", "kind":"namevalue", "type": ["logical","scalar"]},
+            {"name":"TrackAmplitude", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanHELTFChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":[["wlanHESUConfig"],["wlanHETBConfig"],["wlanHERecoveryConfig"]]},
+            {"name":"FrequencySmoothingSpan", "kind":"namevalue"}
+        ]
+    },
+    "wlanHELTFChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":["wlanHEMUConfig"]},
+            {"name":"ruNumber", "kind":"ordered"},
+            {"name":"FrequencySmoothingSpan", "kind":"namevalue"}
+        ]
+    },
+    "wlanPreEHTChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"demodSym", "kind":"required"},
+            {"name":"chEstLLTF", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW160', 'CBW320'}"},
+            {"name":"span", "kind":"ordered"}
+        ]
+    },
+    "wlanPreHEChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"demodSym", "kind":"required"},
+            {"name":"chEstLLTF", "kind":"required"},
+            {"name":"cbw", "kind":"required", "type":"choices={'CBW20', 'CBW40', 'CBW80', 'CBW160', 'CBW320'}"},
+            {"name":"span", "kind":"ordered"}
+        ]
+    },
+    "wlanEHTMUConfig":
+    {
+        "inputs":
+        [
+            {"name":"allocationIndex", "kind":"required"},
+            {"name":"NumTransmitAntennas", "kind":"namevalue"},
+            {"name":"PreEHTCyclicShifts", "kind":"namevalue"},
+            {"name":"PreEHTPhaseRotation", "kind":"namevalue"},
+            {"name":"GuardInterval", "kind":"namevalue"},
+            {"name":"EHTLTFType", "kind":"namevalue"},
+            {"name":"NumExtraEHTLTFSymbols", "kind":"namevalue"},
+            {"name":"EHTSIGMCS", "kind":"namevalue"},
+            {"name":"UplinkIndication", "kind":"namevalue"},
+            {"name":"BSSColor", "kind":"namevalue"},
+            {"name":"SpatialReuse", "kind":"namevalue"},
+            {"name":"TXOPDuration", "kind":"namevalue"},
+            {"name":"Channelization", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTMUConfig":
+    {
+        "inputs":
+        [
+            {"name":"ChannelBandwidth", "kind":"required","type":"choices={'CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"name":"NumUsers", "kind":"namevalue"},
+            {"name":"PuncturedChannelFieldValue", "kind":"namevalue"},
+            {"name":"EHTDUPMode", "kind":"namevalue"},
+            {"name":"NumTransmitAntennas", "kind":"namevalue"},
+            {"name":"PreEHTCyclicShifts", "kind":"namevalue"},
+            {"name":"PreEHTPhaseRotation", "kind":"namevalue"},
+            {"name":"GuardInterval", "kind":"namevalue"},
+            {"name":"EHTLTFType", "kind":"namevalue"},
+            {"name":"NumExtraEHTLTFSymbols", "kind":"namevalue"},
+            {"name":"EHTSIGMCS", "kind":"namevalue"},
+            {"name":"UplinkIndication", "kind":"namevalue"},
+            {"name":"BSSColor", "kind":"namevalue"},
+            {"name":"SpatialReuse", "kind":"namevalue"},
+            {"name":"TXOPDuration", "kind":"namevalue"},
+            {"name":"Channelization", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTMUConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanEHTMUConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanEHTUser":
+    {
+        "inputs":
+        [
+            {"name":"ruNumber", "kind":"required"},
+            {"name":"ChannelCoding", "kind":"namevalue", "type":"choices={'BCC','LDPC'}"},
+            {"name":"PostFECPaddingSource", "kind":"namevalue", "type":"choices={'mt19937arWithSeed','GlobalStream','UserDefined'}"},
+            {"kind":"properties","type":["wlanEHTUser"]}
+        ]
+    },
+    "wlanEHTRU":
+    {
+        "inputs":
+        [
+            {"name":"ruSize", "kind":"required"},
+            {"name":"ruIndex", "kind":"required"},
+            {"name":"userNumbers", "kind":"required"},
+            {"name":"SpatialMapping", "kind":"namevalue", "type":"choices={'Direct','Hadamard','Fourier','Custom'}"},
+            {"kind":"properties","type":["wlanEHTRU"]}
+        ]
+    },
+    "wlanEHTTBConfig":
+    {
+        "inputs":
+        [
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW20','CBW40','CBW80','CBW160','CBW320'}"},
+            {"kind":"properties","type":["wlanEHTTBConfig"]}
+        ]
+    },
+    "wlanEHTTBConfig.transmitTime":
+    {
+        "inputs":
+        [
+            {"name":"cfg", "type": ["wlanEHTTBConfig"]},
+            {"name":"unit", "kind":"ordered", "type":"choices={'seconds', 'milliseconds', 'microseconds', 'nanoseconds'}", "default":"seconds"}
+        ]
+    },
+    "wlanEHTDataBitRecover":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"csi", "kind":"ordered"},
+            {"name":"cfg", "kind":"required", "type":["wlanEHTMUConfig"]},
+            {"name":"userIndex", "kind":"ordered"},
+            {"name":"LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'bp','layered-bp','norm-min-sum','offset-min-sum'}"},
+            {"name":"MinSumScalingFactor", "kind":"namevalue"},
+            {"name":"MinSumOffset", "kind":"namevalue"},
+            {"name":"MaximumLDPCIterationCount", "kind":"namevalue"},
+            {"name":"EarlyTermination", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTDataBitRecover":
+    {
+        "inputs":
+        [
+            {"name":"rx", "kind":"required"},
+            {"name":"noiseVarEst", "kind":"required"},
+            {"name":"csi", "kind":"ordered"},
+            {"name":"cfg", "kind":"required", "type":[["wlanEHTTBConfig"],["wlanEHTRecoveryConfig"]]},
+            {"name":"LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'bp','layered-bp','norm-min-sum','offset-min-sum'}"},
+            {"name":"MinSumScalingFactor", "kind":"namevalue"},
+            {"name":"MinSumOffset", "kind":"namevalue"},
+            {"name":"MaximumLDPCIterationCount", "kind":"namevalue"},
+            {"name":"EarlyTermination", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTLTFChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":["wlanEHTMUConfig"]},
+            {"name":"ruNumber", "kind":"ordered"},
+            {"name":"FrequencySmoothingSpan", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTLTFChannelEstimate":
+    {
+        "inputs":
+        [
+            {"name":"x", "kind":"required"},
+            {"name":"cfg", "kind":"required","type":[["wlanEHTTBConfig"],["wlanEHTRecoveryConfig"]]},
+            {"name":"FrequencySmoothingSpan", "kind":"namevalue"}
+        ]
+    },
+    "wlanEHTRecoveryConfig":
+    {
+        "inputs":
+        [
+            {"name":"ChannelBandwidth", "kind":"namevalue", "type":"choices={'CBW20','CBW40','CBW80','CBW160','CBW320','unknown'}"},
+            {"kind":"properties","type":["wlanEHTRecoveryConfig"]}
+        ]
+    },
+    "wlanHEEqualize":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required","type":["numeric","3d"]},
+            {"name":"chEst", "kind":"required","type":["numeric","3d"]},
+            {"name":"noiseEst", "kind":"required","type":["numeric","scalar",">=0"]},
+            {"name":"cfg", "kind":"required","type":[["wlanHETBConfig","scalar"],["wlanHESUConfig","scalar"]]},
+            {"name":"field", "kind":"required","type":["choices={'L-SIG','RL-SIG','HE-SIG-A','HE-Data'}"]}
+        ]
+    },
+    "wlanHEEqualize":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required","type":["numeric","3d"]},
+            {"name":"chEst", "kind":"required","type":["numeric","3d"]},
+            {"name":"noiseEst", "kind":"required","type":["numeric","scalar",">=0"]},
+            {"name":"cfg", "kind":"required","type":["wlanHERecoveryConfig","scalar"]},
+            {"name":"field", "kind":"required","type":["choices={'L-SIG','RL-SIG','HE-SIG-A','HE-SIG-B','HE-Data'}"]}
+        ]
+    },
+    "wlanHEEqualize":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required","type":["numeric","3d"]},
+            {"name":"chEst", "kind":"required","type":["numeric","3d"]},
+            {"name":"noiseEst", "kind":"required","type":["numeric","scalar",">=0"]},
+            {"name":"cfg", "kind":"required","type":["wlanHEMUConfig","scalar"]},
+            {"name":"field", "kind":"required","type":["choices={'L-SIG','RL-SIG','HE-SIG-A','HE-SIG-B','HE-Data'}"]},
+            {"name":"userIdx", "kind":"ordered","type":["numeric","positive","scalar","<=numel(cfg.User)"]}
+        ]
+    },
+    "wlanEHTEqualize":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required","type":["numeric","3d"]},
+            {"name":"chEst", "kind":"required","type":["numeric","3d"]},
+            {"name":"noiseEst", "kind":"required","type":["numeric","scalar",">=0"]},
+            {"name":"cfg", "kind":"required","type":["wlanEHTTBConfig","scalar"]},
+            {"name":"field", "kind":"required","type":["choices={'L-SIG','RL-SIG','U-SIG','EHT-Data'}"]}
+        ]
+    },
+    "wlanEHTEqualize":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required","type":["numeric","3d"]},
+            {"name":"chEst", "kind":"required","type":["numeric","3d"]},
+            {"name":"noiseEst", "kind":"required","type":["numeric","scalar",">=0"]},
+            {"name":"cfg", "kind":"required","type":["wlanEHTRecoveryConfig","scalar"]},
+            {"name":"field", "kind":"required","type":["choices={'L-SIG','RL-SIG','U-SIG','EHT-SIG','EHT-Data'}"]}
+        ]
+    },
+    "wlanEHTEqualize":
+    {
+        "inputs":
+        [
+            {"name":"sym", "kind":"required","type":["numeric","3d"]},
+            {"name":"chEst", "kind":"required","type":["numeric","3d"]},
+            {"name":"noiseEst", "kind":"required","type":["numeric","scalar",">=0"]},
+            {"name":"cfg", "kind":"required","type":["wlanEHTMUConfig","scalar"]},
+            {"name":"field", "kind":"required","type":["choices={'L-SIG','RL-SIG','U-SIG','EHT-SIG','EHT-Data'}"]},
+            {"name":"userIdx", "kind":"ordered","type":["numeric","positive","scalar","<=numel(cfg.User)"]}
+        ]
+    },
+    "wlanVHTEqualize":
+    {
+        "inputs":
+        [
+            {"name": "sym", "kind": "required","type": [["double","3d"],["single","3d"]]},
+            {"name": "chEst","kind": "required","type": [["double","3d"],["single","3d"]]},
+            {"name": "noiseEst","kind": "required","type": [["double","scalar",">=0"],["single","scalar"]]},
+            {"name": "cfg","kind": "required","type": ["wlanVHTConfig","scalar"]},
+            {"name": "field","kind": "required","type": ["choices={'L-SIG','VHT-SIG-A','VHT-SIG-B','VHT-Data'}"]},
+            {"name": "userIdx","kind": "ordered","type": ["numeric","scalar","@(x)eq(rem(x,1),0)","@(x)gt(x,0)","@(x)le(x,4)"]}
+        ]
+    },
+    "wlanVHTDataBitRecover":
+    {
+        "inputs":
+        [
+            {"name": "rxDataSym", "kind": "required", "type": [["double","3d"],["single","3d"]]},
+            {"name": "noiseEst", "kind": "required", "type": [["double","scalar",">=0"],["single","scalar","@(x)ge(x,0)"]]},
+            {"name": "csi", "kind": "required", "type": [["double","real","2d"],["single","real","2d"]]},
+            {"name": "cfg", "kind": "required", "type": ["wlanVHTConfig","scalar"]},
+            {"name": "userIdx", "kind": "ordered", "type": ["numeric","scalar","@(x)eq(rem(x,1),0)","@(x)gt(x,0)"]},
+            {"name": "LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'norm-min-sum','bp','layered-bp','offset-min-sum'}"},
+            {"name": "MinSumScalingFactor", "kind":"namevalue", "type": ["numeric","scalar","positive","@(x)le(x,1)"]},
+            {"name": "MinSumOffset", "kind":"namevalue","type": ["numeric","scalar","real","@(x)ge(x,0)"]},
+            {"name": "MaximumLDPCIterationCount", "kind":"namevalue", "type": ["numeric","@(x)eq(rem(x,1),0)","@(x)gt(x,0)","scalar"]},
+            {"name": "EarlyTermination", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanVHTDataBitRecover":
+    {
+        "inputs":
+        [
+            {"name": "rxDataSym", "kind": "required", "type": [["double","3d"],["single","3d"]]},
+            {"name": "noiseEst", "kind": "required", "type": [["double","scalar",">=0"],["single","scalar","@(x)ge(x,0)"]]},
+            {"name": "csi","kind": "required", "type": [["double","real","2d"],["single","real","2d"]]},
+            {"name": "cfg", "kind": "required", "type": ["wlanVHTConfig","scalar"]},
+            {"name": "LDPCDecodingMethod", "kind":"namevalue", "type":"choices={'norm-min-sum','bp','layered-bp','offset-min-sum'}"},
+            {"name": "MinSumScalingFactor", "kind":"namevalue", "type": ["numeric","scalar","positive","@(x)le(x,1)"]},
+            {"name": "MinSumOffset", "kind":"namevalue", "type": ["numeric","scalar","real","@(x)ge(x,0)"]},
+            {"name": "MaximumLDPCIterationCount", "kind":"namevalue", "type": ["numeric","@(x)eq(rem(x,1),0)","@(x)gt(x,0)","scalar"]},
+            {"name": "EarlyTermination", "kind":"namevalue", "type": ["logical","scalar"]}
+        ]
+    },
+    "wlanVHTSIGABitRecover":
+    {
+        "inputs":
+        [
+            {"name": "sym", "kind": "required", "type": [["double","2d"],["single","2d"]]},
+            {"name": "noiseEst", "kind": "required", "type": [["double","scalar",">=0"],["single","scalar","@(x)ge(x,0)"]]},
+            {"name": "csi", "kind": "required", "type": [["double","real","vector"],["single","real","vector"]]}
+        ]
+    },
+    "wlanVHTSIGBBitRecover":
+    {
+        "inputs":
+        [
+            {"name": "sym", "kind": "required", "type": [["double","vector"],["single","vector"]]},
+            {"name": "noiseEst", "kind": "required", "type": [["double","scalar",">=0"],["single","scalar","@(x)ge(x,0)"]]},
+            {"name": "csi", "kind": "required", "type": [["double","real","vector"],["single","real","vector"]]},
+            {"name": "cfg", "kind": "required", "type": ["wlanVHTConfig","scalar"]}
+        ]
+    }
+}

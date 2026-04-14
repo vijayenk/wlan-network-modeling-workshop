@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2013-2025 The MathWorks, Inc. -->
+<!-- THIS FILE CONTRIBUTES TO THE MATLAB APPS GALLERY WHICH IS CAREFULLY CURATED -->
+<!-- ADDITIONS AND CHANGES MUST GO THROUGH A DESIGN REVIEW PROCESS WITH SENIOR MANGEMENT -->
+<!-- THIS PROCESS IS MANAGED BY THE MATLAB DESKTOP TEAM. CONSULT THE TOOLSTRIP GUIDELINES TO GET STARTED -->
+<toolset id="wlan_wwg_toolset" message_catalog="wlan:desktoptoolset" contents_path="../wlan">
+    <tool id="wlanWaveformGenerator">
+        <icon filename="wifiIcon_16.png" path="../wlan/icons"  id="wlanWaveformGeneratorApp"/>
+        <icon filename="wifiIcon_24.png" path="../../shared/wirelessappcontainer/+wirelessAppContainer/icons" />
+        <callback>wirelessWaveformGenerator('802.11be')</callback>
+        <capability>
+            <localClient>false</localClient>  <!-- false = visible in MATLAB online -->
+        </capability>
+        <parent_tool id="wireless_products" toolset_id="apps_toolset" />
+    </tool>
+    <tool id="wlanWaveformAnalyzer">     <!-- WLAN specific WWA app icon -->
+        <icon filename="wifiIcon_16.png" path="."  id="wlanWaveformGeneratorApp"/>
+        <icon filename="wifiIcon_24.png" path="../../shared/wirelessappcontainer/+wirelessAppContainer/icons" />
+        <callback>wirelessWaveformAnalyzer</callback>
+        <capability>
+            <localClient>false</localClient>  <!-- false = visible in MATLAB online -->
+        </capability>
+        <parent_tool id="wireless_products" toolset_id="apps_toolset" />
+    </tool>      
+    <tool id="wirelessWaveformAnalyzer">     <!-- Generalized WWA app icon, will be moved to CT in future -->
+        <icon filename="wwa_app_16.png" path="../../shared/wirelessappcontainer/+wirelessAppContainer/icons"  id="wirelessWaveformAnalyzerApp"/>
+        <icon filename="wwa_app_24.png" path="../../shared/wirelessappcontainer/+wirelessAppContainer/icons" />
+        <callback>wirelessWaveformAnalyzer</callback>
+        <capability>
+            <localClient>false</localClient>  <!-- false = visible in MATLAB online -->
+        </capability>
+        <parent_tool id="wireless_products" toolset_id="apps_toolset" />
+    </tool>       
+</toolset>

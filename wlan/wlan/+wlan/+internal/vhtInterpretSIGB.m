@@ -1,0 +1,64 @@
+function [crcBits, apepLen, mcs] = vhtInterpretSIGB(sigBBits, chanBW, isSUTx)
+% vhtInterpretSIGB Interpret recovered VHT-SIG-B bits
+%
+%   Note: This is an internal undocumented function and its API and/or
+%   functionality may change in subsequent releases.
+%
+%   [CRCBITS, APEPLEN, MCS] = vhtInterpretSIGB(SIGBBITS, CHANBW, ISSU)
+%   interprets the specified VHT-SIG-B bits for the VHT format transmission
+%   for a single user.
+%
+%   SIGBBITS is a column vector containing SIG-B bits.
+%
+%   CHANBW is the specified channel bandwidth. It is a character vector or
+%   string and must be one of 'CBW20', 'CBW40', 'CBW80' or 'CBW160'.
+%
+%   ISSU is true for a single-user transmission.
+%
+%   CRCBITS is the checksum based on the specified bits.
+%
+%   APEPLEN is the APEPLength in bytes for the user of interest. This is
+%   rounded to a 4-byte multiple.
+%
+%   MCS is the modulation coding scheme for the user of interest. This is
+%   valid only for a multi-user transmission.
+%
+%   See also vhtConfigRecover, wlanVHTConfig.
+
+%   Copyright 2022-2025 The MathWorks, Inc.
+
+%#codegen
+
+if (isSUTx)
+    switch chanBW
+        case 'CBW20' % 26
+            apepLen = double(bit2int(sigBBits(1:17),17,false))*4;
+            checkBits = sigBBits(1:20);   % VHT-SIG-B excluding tail
+        case 'CBW40' % 27
+            apepLen = double(bit2int(sigBBits(1:19),19,false))*4;
+            checkBits = sigBBits(1:21);   % VHT-SIG-B excluding tail
+        otherwise    % 29 for {'CBW80', 'CBW80+80', 'CBW160'}
+            apepLen = double(bit2int(sigBBits(1:21),21,false))*4;
+            checkBits = sigBBits(1:23);   % VHT-SIG-B excluding tail
+    end
+    mcs = 0; % Default, don't have this information for SU tx
+else  % Multi-user
+    switch chanBW
+        case 'CBW20' % 26
+            apepLen = double(bit2int(sigBBits(1:16),16,false))*4;
+            mcs = double(bit2int(sigBBits(17:20),4,false));
+            checkBits = sigBBits(1:20);   % VHT-SIG-B excluding tail
+        case 'CBW40' % 27
+            apepLen = double(bit2int(sigBBits(1:17),17,false))*4;
+            mcs = double(bit2int(sigBBits(18:21),4,false));
+            checkBits = sigBBits(1:21);   % VHT-SIG-B excluding tail
+        otherwise    % 29 for {'CBW80', 'CBW80+80', 'CBW160'}
+            apepLen = double(bit2int(sigBBits(1:19),19,false))*4;
+            mcs = double(bit2int(sigBBits(20:23),4,false));
+            checkBits = sigBBits(1:23);   % VHT-SIG-B excluding tail
+    end
+end
+
+crcBits = wlan.internal.crcGenerate(checkBits);
+
+end

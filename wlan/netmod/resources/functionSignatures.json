@@ -1,0 +1,177 @@
+{
+    "wlanNode":
+    {
+        "inputs":
+        [
+            {"name":"Name", "kind":"namevalue", "type":"string"},
+            {"name":"MACModel", "kind":"namevalue", "type":"choices={'full-mac', 'full-mac-with-frame-abstraction'}"},
+            {"name":"PHYModel", "kind":"namevalue", "type":"choices={'abstract-phy-tgax-evaluation-methodology', 'abstract-phy-tgax-mac-calibration', 'full-phy'}"},
+            {"name":"DeviceConfig", "kind":"namevalue", "type":"wlanDeviceConfig"},
+            {"kind":"properties","type":["wlanNode"]}
+        ]
+    },
+    "wlanNode":
+    {
+        "inputs":
+        [
+            {"name":"Name", "kind":"namevalue", "type":"string"},
+            {"name":"MACModel", "kind":"namevalue", "type":"choices={'full-mac', 'full-mac-with-frame-abstraction'}"},
+            {"name":"PHYModel", "kind":"namevalue", "type":"choices={'abstract-phy-tgax-evaluation-methodology', 'abstract-phy-tgax-mac-calibration', 'full-phy'}"},
+            {"name":"DeviceConfig", "kind":"namevalue", "type":"wlanMultilinkDeviceConfig"},
+            {"kind":"properties","type":["wlanNode"]}
+        ]
+    },
+    "wlanNode.associateStations":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["wlanNode"]},
+            {"name":"stationList", "kind":"required", "type":["wlanNode"]},
+            {"name":"BandAndChannel", "kind":"namevalue"},
+            {"name":"FullBufferTraffic", "kind":"namevalue", "type":"choices={'on', 'off', 'DL', 'UL'}"}
+        ]
+    },
+    "wlanNode.addTrafficSource":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["wlanNode"]},
+            {"name":"trafficSource", "kind":"required", "type":["networkTrafficOnOff"]},
+            {"name":"DestinationNode", "kind":"namevalue", "type":["wlanNode"]},
+            {"name":"AccessCategory", "kind":"namevalue"}
+        ]
+    },
+    "wlanNode.addMeshPath":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["wlanNode"]},
+            {"name":"destinationNode", "kind":"required", "type":["wlanNode"]},
+            {"name":"meshPathNode", "kind":"optional", "type":["wlanNode"]},
+            {"name":"SourceBandAndChannel", "kind":"namevalue"},
+            {"name":"MeshPathBandAndChannel", "kind":"namevalue"},
+            {"name":"DestinationBandAndChannel", "kind":"namevalue"}
+        ]
+    },
+    "wlanNode.update":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["wlanNode"]},
+            {"name":"deviceID", "kind":"optional"},
+            {"name":"CWMin", "kind":"namevalue"},
+            {"name":"CWMax", "kind":"namevalue"},
+            {"name":"AIFS", "kind":"namevalue"}
+        ]
+    },
+    "wlanNode.statistics":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["wlanNode"]},
+            {"name":"all", "kind":"optional", "type":"choices={'all'}"}
+        ]
+    },
+    "wlanNode.registerEventCallback":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["wlanNode"]},
+            {"name":"eventName", "kind":"required", "type":"choices={'TransmissionStarted','ReceptionEnded','AppPacketGenerated','AppPacketReceived'}"},
+            {"name":"callback", "kind":"required", "type":["function_handle"]}
+        ]
+     },
+    "wlanDeviceConfig":
+    {
+        "inputs":
+        [
+            {"name":"Mode", "kind":"namevalue", "type":"choices={'STA', 'AP', 'mesh'}"},
+            {"name":"TransmissionFormat", "kind":"namevalue", "type":"choices={'Non-HT', 'HT-Mixed', 'VHT', 'HE-SU', 'HE-EXT-SU', 'HE-MU-OFDMA', 'EHT-SU'}"},
+            {"name":"InterferenceModeling", "kind":"namevalue", "type":"choices={'co-channel', 'overlapping-adjacent-channel', 'non-overlapping-adjacent-channel'}"},
+            {"name":"RateControl", "kind":"namevalue", "type":"wlanRateControl"},
+            {"name":"RateControl", "kind":"namevalue", "type":"choices={'fixed', 'auto-rate-fallback'}"},
+            {"kind":"properties","type":["wlanDeviceConfig"]}
+        ]
+    },
+    "wlanMultilinkDeviceConfig":
+    {
+        "inputs":
+        [
+            {"name":"Mode", "kind":"namevalue", "type":"choices={'STA', 'AP'}"},
+            {"name":"LinkConfig", "kind":"namevalue", "type":"wlanLinkConfig"},
+            {"name":"EnhancedMultilinkMode", "kind":"namevalue", "type":"choices={'none', 'EMLSR'}"},
+            {"kind":"properties","type":["wlanMultilinkDeviceConfig"]}
+        ]
+    },
+    "wlanLinkConfig":
+    {
+        "inputs":
+        [
+            {"name":"TransmissionFormat", "kind":"namevalue", "type":"choices={'Non-HT', 'HT-Mixed', 'VHT', 'HE-SU', 'HE-EXT-SU', 'EHT-SU'}"},
+            {"name":"InterferenceModeling", "kind":"namevalue", "type":"choices={'co-channel', 'overlapping-adjacent-channel', 'non-overlapping-adjacent-channel'}"},
+            {"name":"RateControl", "kind":"namevalue", "type":"wlanRateControl"},
+            {"name":"RateControl", "kind":"namevalue", "type":"choices={'fixed', 'auto-rate-fallback'}"},
+            {"kind":"properties","type":["wlanLinkConfig"]}
+        ]
+    },
+    "wlanRateControl.bssConfigurationValue":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":"wlanRateControl"},
+            {"name":"property", "kind":"required", "type":"choices={'BasicRates'}"}
+        ]
+    },
+    "wlanRateControl.deviceConfigurationValue":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":"wlanRateControl"},
+            {"name":"property", "kind":"required", "type":"choices=[properties('wlanDeviceConfig'); properties('wlanLinkConfig'); properties('wlanMultilinkDeviceConfig')]"}
+        ]
+    },
+    "wlanRateControlARF":
+    {
+        "inputs":
+        [
+            {"name":"SuccessThreshold", "kind":"namevalue"},
+            {"name":"FailureThreshold", "kind":"namevalue"}
+        ]
+    },
+    "wlanPCAPWriter":
+    {
+        "inputs":
+        [
+            {"mutuallyExclusiveGroup":
+             [
+                 [
+                     {"name":"ByteOrder", "kind":"namevalue", "type":"choices={'little-endian','big-endian'}"},
+                     {"name":"FileExtension", "kind":"namevalue", "type":"choices={'pcap','pcapng'}"},
+                     {"name":"FileName", "kind":"namevalue"},
+                     {"name":"FileComment", "kind":"namevalue"},
+                     {"name":"Interface", "kind":"namevalue"},
+                     {"name":"RadiotapPresent", "kind":"namevalue", "type":"choices={1,0}"},
+                     {"name":"Node", "kind":"namevalue","type":["wlanNode"]},
+                     {"kind":"properties","type":["wlanPCAPWriter"]}
+                 ],
+                 [
+                     {"name":"PCAPWriter", "kind":"namevalue"},
+                     {"name":"Interface", "kind":"namevalue"},
+                     {"name":"RadiotapPresent", "kind":"namevalue", "type":"choices={1,0}"},
+                     {"name":"Node", "kind":"namevalue", "type":["wlanNode"]}
+                 ],
+                 [
+                     {"name":"PipeName", "kind":"namevalue"},
+                     {"name":"ByteOrder", "kind":"namevalue", "type":"choices={'little-endian','big-endian'}"},
+                     {"name":"FileExtension", "kind":"namevalue", "type":"choices={'pcap','pcapng'}"},
+                     {"name":"FileComment", "kind":"namevalue"},
+                     {"name":"Interface", "kind":"namevalue"},
+                     {"name":"RadiotapPresent", "kind":"namevalue", "type":"choices={1,0}"},
+                     {"name":"Node", "kind":"namevalue","type":["wlanNode"]},
+                     {"kind":"properties","type":["wlanPCAPWriter"]}
+                 ]
+             ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "mw": {
+    "addons": {
+      "identifier": "WL",
+      "previewImage": "previewImage.jpg",
+      "setup": "",
+      "gettingStarted": {
+		  "gettingStartedInput": "WL"
+      },
+      "provider": {
+        "name": "MathWorks",
+        "icon": "matlabLogoUI"
+      }
+    }
+  }
+}

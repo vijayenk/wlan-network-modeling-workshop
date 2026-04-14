@@ -68,6 +68,9 @@ classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
 
             [numSamples,numTxAnts] = size(sig.Data);
             [chanFilt,filterLen,filterDelay] = getChannelFilter(obj,sig.TransmitterID,rxInfo.ID,sig.SampleRate,numTxAnts);
+            if nargout>2
+                chanInfo = info(chanFilt);
+            end
 
             % Trailing zeros will be added to data to allow for channel delay
             numPadSamples = filterLen-1;
@@ -101,10 +104,7 @@ classdef hSLSTGaxSystemChannel < hSLSTGaxSystemChannelBase
 
             % Remove implementation delay
             sig.Data = filteredData(filterDelay+1:end,:);
-            if nargout>2
-                chanInfo = info(chanFilt);
-                pg = pg(filterDelay+1:end,:,:,:);
-            end
+            pg = pg(filterDelay+1:end,:,:,:);
 
             % Add trailing transient to packet duration in seconds
             numTransientSamples = filterLen-1-filterDelay;
