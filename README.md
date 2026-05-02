@@ -27,7 +27,7 @@ The files enable the following exercises:
 1.  Exercise 1 - Operate the simulation engine, configure WLAN nodes, create a simple network, and see statistics  
 2.  Exercise 2 - Configure traffic models, QoS, and model interference.   
 3.  Exercise 3 - Implement custom channel model for WLAN Network
-4.  Exercise 4 - Simulate a network with MLO nodes(WiFi-7)
+
 
 ## Setup 
 To Run:
@@ -36,21 +36,21 @@ To Run:
 - EXPL1_WLAN_Simplest_Network.mlx
 - EXPL2_WLAN_QoS_Interference.mlx
 - EXPL3_WLAN_CustomChannelModel.mlx
-- EXPL4_WLAN_MLO.mlx
+
 
 ### MathWorks Products (https://www.mathworks.com)
 
 Requires the latest MATLAB release
-- [Communications Toolbox Wireless Network Simulation Library;](https://www.mathworks.com/matlabcentral/fileexchange/119923-communications-toolbox-wireless-network-simulation-library)
-- [WLAN Toolbox&trade;](https://www.mathworks.com/products/wlan.html)
-- [Bluetooth Toolbox™](https://in.mathworks.com/products/bluetooth.html)
-- [DSP System Toolbox&trade;](https://www.mathworks.com/products/dsp-system.html)
-- [Communications Toolbox&trade;](https://www.mathworks.com/products/communications.html)
-- [Signal Processing Toolbox&trade;](https://www.mathworks.com/products/signal.html)
+* [Wireless Network Toolbox™](https://www.mathworks.com/products/wireless-network.html)
+* [Bluetooth Toolbox™](https://www.mathworks.com/products/bluetooth.html)
+* [WLAN Toolbox™](https://www.mathworks.com/products/wlan.html)
+* [DSP System Toolbox™](https://www.mathworks.com/products/dsp-system.html)
+* [Communications Toolbox™](https://www.mathworks.com/products/communications.html)
+* [Signal Processing Toolbox™](https://www.mathworks.com/products/signal.html)
 
 ### 3rd Party Products:
 3p:
-- None
+* Wireshark can be used for packet visualization
 
 ## Getting Started 
 See https://www.mathworks.com/help/wlan/system-level-simulation.html
@@ -67,4 +67,4 @@ The license for the WLAN-Network-Modeling-Workshop is available in the LICENSE.T
 ## Community Support
 [MATLAB Central](https://www.mathworks.com/matlabcentral)
 
-Copyright 2025 The MathWorks, Inc.
+Copyright 2026 The MathWorks, Inc.
