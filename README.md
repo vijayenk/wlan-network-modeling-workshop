@@ -25,17 +25,18 @@ to completion.
 
 The files enable the following exercises:  
 1.  Exercise 1 - Operate the simulation engine, configure WLAN nodes, create a simple network, and see statistics  
-2.  Exercise 2 - Configure traffic models, QoS, and model interference.   
-3.  Exercise 3 - Implement custom channel model for WLAN Network
-
+3.  Exercise 2 - Implement custom channel model for WLAN Network
+2.  Exercise 3 - Configure traffic models, QoS, and model interference.   
+4.  Exercise 4 - Simulate 802.11be Multi-Link Operation (MLO)
 
 ## Setup 
 To Run:
 1. To conduct the workshop, use the "Exercise" files
 2. To simply run the completed exercises, run the following files in MATLAB:
 - EXPL1_WLAN_Simplest_Network.mlx
-- EXPL2_WLAN_QoS_Interference.mlx
-- EXPL3_WLAN_CustomChannelModel.mlx
+- EXPL2_WLAN_CustomChannelModel.mlx 
+- EXPL3_WLAN_QoS_Interference.mlx
+- EXPL4_WLAN_Multi_Link_Operation
 
 
 ### MathWorks Products (https://www.mathworks.com)
